@@ -125,8 +125,8 @@
                         <div class="flex justify-between items-center mb-1.5">
                             <label for="inputRollDiam" class="text-xs font-semibold uppercase tracking-wider text-slate-600">Внешний диаметр рулона (D)</label>
                             <div class="flex items-center gap-1">
-                                <input type="number" id="inputRollDiam" min="90" max="1200" step="1" value="235"
-                                    class="mono w-20 text-right font-bold text-blue-700 bg-white border border-slate-300 rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <input type="number" id="inputRollDiam" min="80" max="1200" step="0.5" value="235"
+                                    class="mono w-22 text-right font-bold text-blue-700 bg-white border border-slate-300 rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                 <span class="text-xs font-semibold text-slate-500">мм</span>
                             </div>
                         </div>
@@ -142,20 +142,20 @@
                         </div>
                     </div>
 
-                    <!-- Длина намотки / Метраж рулона (L) - Двусторонняя связь с диаметром -->
-                    <div class="bg-blue-50/50 p-3.5 rounded-xl border border-blue-200/80">
-                        <div class="flex justify-between items-center mb-1.5">
+                    <!-- Длина намотки / Метраж рулона (L) + Целевой вес 1 рулона -->
+                    <div class="bg-blue-50/50 p-3.5 rounded-xl border border-blue-200/80 space-y-2.5">
+                        <div class="flex justify-between items-center">
                             <div>
                                 <label for="inputRollLength" class="text-xs font-semibold uppercase tracking-wider text-blue-900 block">Метраж рулона (Длина намотки)</label>
-                                <span class="text-[10px] text-slate-500">При смене толщины пересчитывает Ø рулона</span>
+                                <span class="text-[10px] text-slate-500">Точный двусторонний пересчет с Ø и весом</span>
                             </div>
                             <div class="flex items-center gap-1">
-                                <input type="number" id="inputRollLength" min="10" max="50000" step="10" value="734"
+                                <input type="number" id="inputRollLength" min="1" max="100000" step="1" value="734"
                                     class="mono w-24 text-right font-bold text-blue-700 bg-white border border-blue-300 rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                 <span class="text-xs font-semibold text-slate-600">пог. м</span>
                             </div>
                         </div>
-                        <div class="flex items-center justify-between gap-1 mt-2 flex-wrap">
+                        <div class="flex items-center justify-between gap-1 flex-wrap">
                             <span class="text-[11px] text-slate-500 font-medium">Быстрый метраж:</span>
                             <div class="flex gap-1 flex-wrap">
                                 <button type="button" onclick="setQuickLength(500)" class="text-[11px] px-2 py-0.5 bg-white border border-slate-200 rounded hover:border-blue-500 hover:text-blue-600 font-medium text-slate-600 cursor-pointer">500 м</button>
@@ -165,12 +165,26 @@
                                 <button type="button" onclick="setQuickLength(3000)" class="text-[11px] px-2 py-0.5 bg-white border border-slate-200 rounded hover:border-blue-500 hover:text-blue-600 font-medium text-slate-600 cursor-pointer">3000 м</button>
                             </div>
                         </div>
+
+                        <!-- Обратный подбор по целевому чистому весу 1 рулона (кг нетто) -->
+                        <div class="pt-2 border-t border-blue-200/60 flex items-center justify-between gap-2">
+                            <div>
+                                <label for="inputTargetNetWeight" class="text-[11px] font-semibold text-slate-700 block">Подбор по весу 1 рулона (Нетто):</label>
+                                <span class="text-[10px] text-slate-500">Вычисляет метраж и Ø под нужный вес</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <input type="number" id="inputTargetNetWeight" min="0.1" max="1000" step="0.1" value="13.5"
+                                    class="mono w-20 text-right font-bold text-emerald-700 bg-white border border-blue-300 rounded-lg px-2 py-1 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <span class="text-xs font-semibold text-slate-600">кг</span>
+                            </div>
+                        </div>
+
                         <!-- Переключатель режима пересчета при смене толщины или шпули -->
-                        <div class="mt-2.5 pt-2 border-t border-blue-200/60 flex items-center justify-between text-[11px]">
+                        <div class="pt-2 border-t border-blue-200/60 flex items-center justify-between text-[11px]">
                             <span class="text-slate-600 font-medium">При смене толщины / шпули:</span>
                             <div class="inline-flex rounded-lg bg-white p-0.5 border border-blue-200">
                                 <button type="button" id="btnLockLength" onclick="setCalcLockMode('length')"
-                                    class="px-2 py-0.5 rounded-md font-semibold bg-blue-600 text-white transition cursor-pointer" title="Сохранять метраж, менять внешний диаметр D">
+                                    class="px-2 py-0.5 rounded-md font-semibold bg-blue-600 text-white transition cursor-pointer" title="Сохранять точный метраж, менять внешний диаметр D">
                                     Менять Ø рулона
                                 </button>
                                 <button type="button" id="btnLockDiam" onclick="setCalcLockMode('diam')"
@@ -223,7 +237,7 @@
                         <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
                             <label for="inputThickness" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Толщина материала</label>
                             <div class="flex items-center gap-1.5">
-                                <input type="number" id="inputThickness" min="5" max="1000" step="1" value="50"
+                                <input type="number" id="inputThickness" min="1" max="2000" step="0.5" value="50"
                                     class="mono w-full font-bold text-slate-900 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                 <span class="text-xs font-semibold text-slate-500">мкм</span>
                             </div>
@@ -376,16 +390,16 @@
                         <!-- Опции для горизонтальной укладки -->
                         <div id="horizOptionsPanel" class="hidden mt-2.5 p-3 bg-slate-50 rounded-xl border border-slate-200/70 grid grid-cols-2 gap-2">
                             <div>
-                                <label class="block text-[11px] font-medium text-slate-600 mb-1">Поворот оси рулона:</label>
-                                <select id="selectHorizAxis" class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs font-medium text-slate-800">
-                                    <option value="along_length">Вдоль длинной стороны (1200)</option>
-                                    <option value="along_width">Поперек (вдоль 800/1100)</option>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Ось рулона по паллете</label>
+                                <select id="selectHorizAxis" class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-medium text-slate-800">
+                                    <option value="along_length">Вдоль длинной стороны</option>
+                                    <option value="along_width">Вдоль короткой стороны</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-[11px] font-medium text-slate-600 mb-1">Тип ярусов по высоте:</label>
-                                <select id="selectHorizStackType" class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs font-medium text-slate-800">
-                                    <option value="straight">Прямые ряды (друг на друга)</option>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Укладка ярусов</label>
+                                <select id="selectHorizStackType" class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-medium text-slate-800">
+                                    <option value="straight">Прямыми рядами (в столбик)</option>
                                     <option value="pyramid">В люльку / Пирамидой (-1 в ряду)</option>
                                 </select>
                             </div>
@@ -848,7 +862,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Базовая паллета</label>
-                            <select id="modalPalletType" onchange="updateModalPreview()" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm font-medium bg-white">
+                            <select id="modalPalletType" onchange="handleModalPalletTypeChange()" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm font-medium bg-white">
                                 <option value="1200x800">1200 × 800 мм</option>
                                 <option value="1100x1200">1100 × 1200 мм</option>
                                 <option value="1200x1200">1200 × 1200 мм</option>
@@ -1279,7 +1293,8 @@
 
         const state = {
             rollDiam: 235,          // Внешний диаметр рулона D, мм
-            rollLength: 734,        // Заданный метраж рулона L, пог. м
+            rollLength: 734.15,     // Точный расчетный или заданный метраж рулона L, пог. м
+            exactLockedLength: null,// Если задан метраж вручную, храним его без потери точности от округления D
             lockMode: 'length',     // 'length' (менять диаметр при смене толщины) | 'diam' (менять метраж)
             coreInnerDiam: 76,      // Внутренний диаметр шпули (76 или 152 мм)
             coreWall: 8,            // Толщина стенки шпули, мм
@@ -1344,11 +1359,14 @@
             // Если 2 крайних рулона раздвинуть по ширине паллеты (допустимо до palletW - D),
             // то 3-й центральный рулон глубже садится между ними и не свешивается за 800 мм!
             if (scheme.id === 'std_3' && scheme.points.length === 3) {
-                // Оптимальный разнос между центрами рулонов 1 и 2 по горизонтали:
-                // стараемся держать компактно, но если высота поджимает 800 мм — раздвигаем до краев паллеты
                 const maxAllowedSpanX = Math.max(effectivePitch, palletW - currentDiam);
-                // Базовый полушаг по X (минимум 0.5 * pitch, максимум maxAllowedSpanX / 2)
-                let halfSpanX = Math.min(maxAllowedSpanX / 2, Math.max(effectivePitch * 0.72, Math.sqrt(Math.max(0, effectivePitch * effectivePitch - Math.pow(palletH - currentDiam, 2)))));
+                let halfSpanX = Math.min(
+                    maxAllowedSpanX / 2,
+                    Math.max(
+                        effectivePitch * 0.72,
+                        Math.sqrt(Math.max(0, effectivePitch * effectivePitch - Math.pow(Math.max(0, palletH - currentDiam), 2)))
+                    )
+                );
                 if (halfSpanX >= effectivePitch) halfSpanX = effectivePitch * 0.98;
 
                 const triangleHeightY = Math.sqrt(Math.max(0, effectivePitch * effectivePitch - halfSpanX * halfSpanX));
@@ -1376,17 +1394,25 @@
                 }));
             }
 
-            // Для всех остальных схем: масштабируем относительно эталона и центрируем строго по внешним краям (Bounding Box),
-            // а не по центру тяжести точек (чтобы при несимметричных рядах группа всегда стояла ровно по центру паллеты)
+            // Для всех остальных схем: масштабируем межцентровые расстояния относительно геометрического центра точек,
+            // а затем центрируем всю группу строго по внешнему габариту (Bounding Box) внутри паллеты
             const refPts = scheme.points.map(p => ({
                 x: p.nx * refPallet.w,
                 y: p.ny * refPallet.h
             }));
 
+            let cxRef = 0, cyRef = 0;
+            for (const p of refPts) {
+                cxRef += p.x;
+                cyRef += p.y;
+            }
+            cxRef /= refPts.length;
+            cyRef /= refPts.length;
+
             const scaleRatio = scheme.maxDiam > 0 ? (effectivePitch / scheme.maxDiam) : 1;
             const scaledPts = refPts.map(p => ({
-                x: p.x * scaleRatio,
-                y: p.y * scaleRatio
+                x: cxRef + (p.x - cxRef) * scaleRatio,
+                y: cyRef + (p.y - cyRef) * scaleRatio
             }));
 
             let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
@@ -1442,12 +1468,65 @@
             };
         }
 
+        // Вспомогательная функция: считает точное число рулонов, листов и высоту паллеты для заданного числа ярусов
+        function calculatePalletStructureForTiers(tiersCount, D, B, gap) {
+            const palletDim = PALLET_DIMENSIONS[state.palletType];
+            const palletWoodH = 145;
+            let rollsPerTier = 0;
+            let totalRollsOnPallet = 0;
+            let sheetsPerPallet = 0;
+            let totalHeightMm = palletWoodH;
+
+            if (state.orientation === 'vertical') {
+                const scheme = state.schemes.find(s => s.id === state.activeSchemeId) || state.schemes[0];
+                rollsPerTier = scheme ? scheme.points.length : 0;
+                totalRollsOnPallet = rollsPerTier * tiersCount;
+                sheetsPerPallet = state.useInterlayer ? tiersCount : 0;
+                const sheetsHeightAddMm = sheetsPerPallet * (state.useInterlayer ? state.interlayerThickMm : 0);
+                totalHeightMm = palletWoodH + tiersCount * B + sheetsHeightAddMm;
+            } else {
+                const horiz = calculateHorizontalLayout(palletDim.w, palletDim.h, D, B, state.horizAxis, gap);
+                rollsPerTier = horiz.rollsPerBottomTier;
+
+                if (state.horizStackType === 'straight') {
+                    totalRollsOnPallet = rollsPerTier * tiersCount;
+                    sheetsPerPallet = state.useInterlayer ? tiersCount : 0;
+                    const sheetsHeightAddMm = sheetsPerPallet * (state.useInterlayer ? state.interlayerThickMm : 0);
+                    totalHeightMm = palletWoodH + tiersCount * D + sheetsHeightAddMm;
+                } else {
+                    // Укладка пирамидой («в люльку») — между ярусами прокладки не кладутся, только 1 базовый лист на поддон
+                    const axialRows = (state.horizAxis === 'along_length') ? horiz.cols : horiz.rows;
+                    let sumRolls = 0;
+                    let actualTiers = 0;
+                    for (let t = 0; t < tiersCount; t++) {
+                        const countAlongD = Math.max(0, horiz.rollsAlongDiamSide - t);
+                        if (countAlongD > 0) {
+                            sumRolls += countAlongD * axialRows;
+                            actualTiers++;
+                        }
+                    }
+                    totalRollsOnPallet = sumRolls;
+                    sheetsPerPallet = (state.useInterlayer && actualTiers > 0) ? 1 : 0;
+                    const baseSheetH = sheetsPerPallet * (state.useInterlayer ? state.interlayerThickMm : 0);
+                    totalHeightMm = palletWoodH + baseSheetH + (actualTiers > 0 ? D + (actualTiers - 1) * D * (Math.sqrt(3) / 2) : 0);
+                }
+            }
+
+            return {
+                rollsPerTier,
+                totalRollsOnPallet,
+                sheetsPerPallet,
+                totalHeightMm: Math.round(totalHeightMm)
+            };
+        }
+
         function calculateAll() {
-            const D = Math.max(50, state.rollDiam); // мм
             const d_inner = state.coreInnerDiam; // 76 или 152 мм
             const wall = Math.max(0, state.coreWall); // мм
             const d_core = d_inner + 2 * wall; // наружный диаметр шпули, мм
-            const h_um = Math.max(1, state.thicknessMicrons); // толщина 1 слоя пленки, мкм
+            // Гарантируем, что внешний диаметр рулона D не может быть меньше наружного диаметра шпули
+            const D = Math.max(d_core + 1, state.rollDiam); // мм
+            const h_um = Math.max(0.5, state.thicknessMicrons); // толщина 1 слоя пленки, мкм
             const layers = Math.max(1, state.windingLayers); // 1, 2 или 4 слоя в витке
             const effective_h_um = h_um * layers; // суммарная толщина витка в намотке, мкм
             const B = Math.max(10, state.rollWidth); // мм
@@ -1457,7 +1536,11 @@
             // 1. Длина намотки в рулоне (пог. м рулона): L = pi * (D^2 - d_core^2) / (4 * effective_h_um)
             let lengthMeters = 0;
             let turnsCount = 0;
-            if (D > d_core) {
+            if (state.exactLockedLength !== null && state.exactLockedLength > 0) {
+                // Если метраж был задан напрямую (или через целевой вес), используем его без погрешности округления D
+                lengthMeters = state.exactLockedLength;
+                turnsCount = Math.round(((D - d_core) / 2 * 1000) / effective_h_um);
+            } else if (D > d_core) {
                 lengthMeters = (Math.PI * (D * D - d_core * d_core)) / (4 * effective_h_um);
                 turnsCount = Math.round(((D - d_core) / 2 * 1000) / effective_h_um);
             }
@@ -1478,50 +1561,15 @@
             const grossWeightKg = netWeightKg + coreWeightKg;
 
             // 5. Параметры паллеты, прокладок и количества рулонов
-            const palletDim = PALLET_DIMENSIONS[state.palletType];
-            let rollsPerTier = 0;
-            let totalRollsOnPallet = 0;
-            const palletWoodH = 145; // высота поддона EUR ~ 145 мм
+            const structure = calculatePalletStructureForTiers(state.tiers, D, B, gap);
+            const rollsPerTier = structure.rollsPerTier;
+            const totalRollsOnPallet = structure.totalRollsOnPallet;
+            const sheetsPerPallet = structure.sheetsPerPallet;
+            const totalHeightMm = structure.totalHeightMm;
 
-            // Межъярусные прокладки: кладутся на сам поддон (1 шт) + между ярусами (tiers - 1) = итого tiers листов
-            const sheetsPerPallet = state.useInterlayer ? state.tiers : 0;
-            const sheetsHeightAddMm = sheetsPerPallet * (state.useInterlayer ? state.interlayerThickMm : 0);
             const packagingAddWeightKg = state.useInterlayer
                 ? (sheetsPerPallet * state.interlayerWeightKg + state.stretchWrapWeightKg)
                 : 0;
-
-            let totalHeightMm = palletWoodH;
-
-            if (state.orientation === 'vertical') {
-                const scheme = state.schemes.find(s => s.id === state.activeSchemeId) || state.schemes[0];
-                rollsPerTier = scheme ? scheme.points.length : 0;
-                totalRollsOnPallet = rollsPerTier * state.tiers;
-                totalHeightMm = palletWoodH + state.tiers * B + sheetsHeightAddMm;
-            } else {
-                // Горизонтальная укладка
-                const horiz = calculateHorizontalLayout(palletDim.w, palletDim.h, D, B, state.horizAxis, gap);
-                rollsPerTier = horiz.rollsPerBottomTier;
-
-                if (state.horizStackType === 'straight') {
-                    totalRollsOnPallet = rollsPerTier * state.tiers;
-                    totalHeightMm = palletWoodH + state.tiers * D + sheetsHeightAddMm;
-                } else {
-                    // Укладка пирамидой («в люльку») — каждый следующий ярус содержит на 1 ряд меньше вдоль диаметра
-                    const axialRows = (state.horizAxis === 'along_length') ? horiz.cols : horiz.rows;
-                    let sumRolls = 0;
-                    let actualTiers = 0;
-                    for (let t = 0; t < state.tiers; t++) {
-                        const countAlongD = Math.max(0, horiz.rollsAlongDiamSide - t);
-                        if (countAlongD > 0) {
-                            sumRolls += countAlongD * axialRows;
-                            actualTiers++;
-                        }
-                    }
-                    totalRollsOnPallet = sumRolls;
-                    const baseSheetH = state.useInterlayer ? state.interlayerThickMm : 0;
-                    totalHeightMm = palletWoodH + baseSheetH + (actualTiers > 0 ? D + (actualTiers - 1) * D * (Math.sqrt(3) / 2) : 0);
-                }
-            }
 
             const totalPalletArea = areaSqM * totalRollsOnPallet;
             const totalPalletLength = lengthMeters * totalRollsOnPallet;
@@ -1530,7 +1578,7 @@
             const totalPalletGrossWeight = totalPalletNetWeight + totalTareWeight;
 
             return {
-                D,
+                D: Math.round(D * 10) / 10,
                 d_inner,
                 d_core,
                 h_um,
@@ -1548,7 +1596,7 @@
                 totalRollsOnPallet,
                 sheetsPerPallet,
                 packagingAddWeightKg,
-                totalHeightMm: Math.round(totalHeightMm),
+                totalHeightMm,
                 totalPalletArea,
                 totalPalletLength,
                 totalPalletNetWeight,
@@ -1741,23 +1789,29 @@
             } else {
                 // Горизонтальная укладка (прямоугольники сверху)
                 const horiz = calculateHorizontalLayout(palletDim.w, palletDim.h, calc.D, state.rollWidth, state.horizAxis, state.rollGap);
-                document.getElementById('overhangWarningBanner').classList.add('hidden');
+                const banner = document.getElementById('overhangWarningBanner');
+                const bannerText = document.getElementById('overhangWarningText');
 
                 horiz.rects.forEach((rc, idx) => {
                     const left = rc.x - rc.w / 2;
+                    const right = rc.x + rc.w / 2;
                     const top = rc.y - rc.h / 2;
+                    const bottom = rc.y + rc.h / 2;
                     if (left < minX) minX = left;
-                    if (left + rc.w > maxX) maxX = left + rc.w;
+                    if (right > maxX) maxX = right;
                     if (top < minY) minY = top;
-                    if (top + rc.h > maxY) maxY = top + rc.h;
+                    if (bottom > maxY) maxY = bottom;
+
+                    const isOut = (left < -2 || right > palletDim.w + 2 || top < -2 || bottom > palletDim.h + 2);
+                    if (isOut) hasOverhang = true;
 
                     const rx = ox + left * scale;
                     const ry = oy + top * scale;
                     const rw = rc.w * scale;
                     const rh = rc.h * scale;
 
-                    ctx.fillStyle = '#3b6fc4';
-                    ctx.strokeStyle = '#1e3a8a';
+                    ctx.fillStyle = isOut ? 'rgba(245, 158, 11, 0.85)' : '#3b6fc4';
+                    ctx.strokeStyle = isOut ? '#b45309' : '#1e3a8a';
                     ctx.lineWidth = 1.5;
                     ctx.fillRect(rx + 1, ry + 1, Math.max(2, rw - 2), Math.max(2, rh - 2));
                     ctx.strokeRect(rx + 1, ry + 1, Math.max(2, rw - 2), Math.max(2, rh - 2));
@@ -1770,6 +1824,15 @@
                         ctx.fillText(`#${idx + 1}`, rx + rw / 2, ry + rh / 2);
                     }
                 });
+
+                if (hasOverhang) {
+                    banner.classList.remove('hidden');
+                    const overhangX = Math.max(0, Math.round((maxX - minX) - palletDim.w));
+                    const overhangY = Math.max(0, Math.round((maxY - minY) - palletDim.h));
+                    bannerText.textContent = `Внимание: при горизонтальной укладке габарит рулона выступает за края паллеты на ~${Math.max(1, overhangX, overhangY)} мм.`;
+                } else {
+                    banner.classList.add('hidden');
+                }
 
                 occupiedAreaMm2 = horiz.rects.length * calc.D * state.rollWidth;
             }
@@ -1986,6 +2049,26 @@
             return group;
         }
 
+        // Рекурсивное освобождение памяти WebGL (геометрии и материалов) при перестроении 3D-сцены
+        function disposeObject3D(obj) {
+            if (!obj) return;
+            if (obj.children && obj.children.length > 0) {
+                for (let i = obj.children.length - 1; i >= 0; i--) {
+                    disposeObject3D(obj.children[i]);
+                }
+            }
+            if (obj.geometry) {
+                obj.geometry.dispose();
+            }
+            if (obj.material) {
+                if (Array.isArray(obj.material)) {
+                    obj.material.forEach(m => m && m.dispose && m.dispose());
+                } else if (obj.material.dispose) {
+                    obj.material.dispose();
+                }
+            }
+        }
+
         function drawSideViewCanvas(calc) {
             init3DViewer();
             if (!threeCtx.initialized) return;
@@ -1999,11 +2082,12 @@
                 threeCtx.camera.updateProjectionMatrix();
             }
 
-            // Очищаем предыдущие меши из группы
+            // Очищаем предыдущие меши из группы с освобождением GPU-памяти
             const group = threeCtx.palletGroup;
             while (group.children.length > 0) {
                 const child = group.children[0];
                 group.remove(child);
+                disposeObject3D(child);
             }
 
             const palletDim = PALLET_DIMENSIONS[state.palletType];
@@ -2087,6 +2171,8 @@
                 const g = Math.max(0, state.rollGap);
                 const isAlongLength = (state.horizAxis === 'along_length');
                 const isPyramid = (state.horizStackType === 'pyramid');
+                const sheetH = state.useInterlayer ? Math.max(0, state.interlayerThickMm) : 0;
+                const sheetMat = new THREE.MeshLambertMaterial({ color: 0xc29b61 });
 
                 const axialCount = isAlongLength ? horiz.cols : horiz.rows;
                 const baseDiamCount = isAlongLength ? horiz.rows : horiz.cols;
@@ -2098,30 +2184,57 @@
                 const totalBaseDiamSpan = baseDiamCount * calc.D + (baseDiamCount - 1) * g;
                 const startBaseDiam = -totalBaseDiamSpan / 2 + rMm;
 
+                // Базовый лист на поддоне для пирамиды
+                if (isPyramid && sheetH > 0) {
+                    const sGeo = new THREE.BoxGeometry(pW - 10, Math.max(3, sheetH), pH - 10);
+                    const sMesh = new THREE.Mesh(sGeo, sheetMat);
+                    sMesh.position.set(0, palletWoodH + sheetH / 2, 0);
+                    group.add(sMesh);
+                }
+
                 for (let t = 0; t < state.tiers; t++) {
                     const countAlongD = isPyramid ? Math.max(0, baseDiamCount - t) : baseDiamCount;
                     if (countAlongD <= 0) break;
 
+                    if (!isPyramid && sheetH > 0) {
+                        const sheetCenterY = palletWoodH + t * (calc.D + sheetH) + sheetH / 2;
+                        const sGeo = new THREE.BoxGeometry(pW - 10, Math.max(3, sheetH), pH - 10);
+                        const sMesh = new THREE.Mesh(sGeo, sheetMat);
+                        sMesh.position.set(0, sheetCenterY, 0);
+                        group.add(sMesh);
+                    }
+
                     const rowShiftD = isPyramid ? t * (pitchDiam / 2) : 0;
                     const centerY = isPyramid
-                        ? palletWoodH + rMm + t * (calc.D * (Math.sqrt(3) / 2))
-                        : palletWoodH + rMm + t * calc.D;
+                        ? palletWoodH + sheetH + rMm + t * (calc.D * (Math.sqrt(3) / 2))
+                        : palletWoodH + t * (calc.D + sheetH) + sheetH + rMm;
 
                     for (let dIdx = 0; dIdx < countAlongD; dIdx++) {
                         const posDiam = startBaseDiam + rowShiftD + dIdx * pitchDiam;
 
                         for (let aIdx = 0; aIdx < axialCount; aIdx++) {
                             const posAxial = startAxial + aIdx * (rollLen + g);
-                            const rollMesh = create3DRollMesh(calc.D, calc.d_core, rollLen, false, t);
+                            const xPos = isAlongLength ? posAxial : posDiam;
+                            const zPos = isAlongLength ? posDiam : posAxial;
+                            const halfSpanX = isAlongLength ? rollLen / 2 : rMm;
+                            const halfSpanZ = isAlongLength ? rMm : rollLen / 2;
+                            const isOut = (
+                                xPos - halfSpanX < -pW / 2 - 2.5 ||
+                                xPos + halfSpanX > pW / 2 + 2.5 ||
+                                zPos - halfSpanZ < -pH / 2 - 2.5 ||
+                                zPos + halfSpanZ > pH / 2 + 2.5
+                            );
+
+                            const rollMesh = create3DRollMesh(calc.D, calc.d_core, rollLen, isOut, t);
 
                             if (isAlongLength) {
                                 // Ось рулона вдоль X (длинной стороны паллеты)
                                 rollMesh.rotation.z = Math.PI / 2;
-                                rollMesh.position.set(posAxial, centerY, posDiam);
+                                rollMesh.position.set(xPos, centerY, zPos);
                             } else {
                                 // Ось рулона вдоль Z (ширины паллеты)
                                 rollMesh.rotation.x = Math.PI / 2;
-                                rollMesh.position.set(posDiam, centerY, posAxial);
+                                rollMesh.position.set(xPos, centerY, zPos);
                             }
                             group.add(rollMesh);
                         }
@@ -2167,6 +2280,7 @@
             const container = document.getElementById('schemesGridContainer');
             if (!container) return;
 
+            const palletDim = PALLET_DIMENSIONS[state.palletType];
             const filtered = state.schemes.filter(s => {
                 if (state.schemeFilter === 'standard') return s.isStandard;
                 if (state.schemeFilter === 'custom') return s.isCustom || !s.isStandard;
@@ -2175,8 +2289,7 @@
 
             container.innerHTML = filtered.map(scheme => {
                 const isActive = (state.orientation === 'vertical' && state.activeSchemeId === scheme.id);
-                const effectiveD = state.rollDiam + state.rollGap;
-                const isFit = effectiveD <= scheme.maxDiam;
+                const isFit = doesSchemeFitPallet(scheme, palletDim.w, palletDim.h, state.rollDiam, state.rollGap);
 
                 return `
                     <div onclick="manualSelectScheme('${scheme.id}')"
@@ -2223,7 +2336,7 @@
         /***********************************************************************
          * 5. ОБНОВЛЕНИЕ ИНТЕРФЕЙСА И АВТОПОДБОР СХЕМЫ
          ***********************************************************************/
-        // Проверяет, помещаются ли все рулоны схемы в границы текущей паллеты без свесов и пересечений
+        // Проверяет, помещаются ли все рулоны схемы в границы текущей паллеты БЕЗ свесов и БЕЗ взаимных пересечений (нахлестов)
         function doesSchemeFitPallet(scheme, palletW, palletH, rollDiam, gapMm) {
             const effectiveD = rollDiam + Math.max(0, gapMm);
             // Для адаптивной схемы из 3 рулонов со смещением геометрический предел на паллете 1200x800 выше (до ~482 мм)
@@ -2233,6 +2346,8 @@
             const pts = getActualRollPositionsMm(scheme, palletW, palletH, rollDiam, gapMm);
             const rMm = rollDiam / 2;
             const tolerance = 2.5; // допуск 2.5 мм на округление
+
+            // 1. Проверка выхода за борта паллеты
             for (const pt of pts) {
                 if (
                     pt.x - rMm < -tolerance ||
@@ -2243,6 +2358,17 @@
                     return false;
                 }
             }
+
+            // 2. Проверка попарных пересечений (нахлестов) рулонов друг с другом
+            for (let i = 0; i < pts.length; i++) {
+                for (let j = i + 1; j < pts.length; j++) {
+                    const dist = Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y);
+                    if (dist < effectiveD - 2.0) {
+                        return false;
+                    }
+                }
+            }
+
             return true;
         }
 
@@ -2289,25 +2415,26 @@
             updateUI();
         }
 
-        // Расчет максимально допустимого числа ярусов по высоте и весу паллеты
+        // Расчет максимально допустимого числа ярусов по высоте и весу паллеты (учитывает и вертикальную, и пирамидальную укладку)
         function computeMaxAllowedTiers(calc) {
-            const palletWoodH = 145;
-            const sheetH = state.useInterlayer ? state.interlayerThickMm : 0;
-            const sheetW = state.useInterlayer ? state.interlayerWeightKg : 0;
+            let bestTiers = 1;
             const wrapW = state.useInterlayer ? state.stretchWrapWeightKg : 0;
+            const sheetW = state.useInterlayer ? state.interlayerWeightKg : 0;
 
-            const oneTierHeight = (state.orientation === 'vertical' ? state.rollWidth : calc.D) + sheetH;
-            const maxByHeight = oneTierHeight > 0
-                ? Math.floor((state.maxHeightLimitMm - palletWoodH) / oneTierHeight)
-                : 1;
+            for (let t = 1; t <= 15; t++) {
+                const st = calculatePalletStructureForTiers(t, calc.D, calc.B, state.rollGap);
+                if (st.totalRollsOnPallet <= 0) break;
+                const grossW = st.totalRollsOnPallet * calc.grossWeightKg
+                    + state.palletWoodWeight
+                    + (state.useInterlayer ? st.sheetsPerPallet * sheetW + wrapW : 0);
 
-            const oneTierWeight = calc.rollsPerTier * calc.grossWeightKg + sheetW;
-            const availableRollWeight = state.maxWeightLimitKg - state.palletWoodWeight - wrapW;
-            const maxByWeight = oneTierWeight > 0
-                ? Math.floor(availableRollWeight / oneTierWeight)
-                : 1;
-
-            return Math.max(1, Math.min(15, maxByHeight, maxByWeight));
+                if (st.totalHeightMm <= state.maxHeightLimitMm && grossW <= state.maxWeightLimitKg) {
+                    bestTiers = t;
+                } else if (t > 1) {
+                    break;
+                }
+            }
+            return bestTiers;
         }
 
         function autoFitTiersToLimits() {
@@ -2325,13 +2452,14 @@
             let totalRollsNeeded = 0;
             if (calc.netWeightKg > 0 && calc.lengthMeters > 0 && calc.areaSqM > 0) {
                 if (unit === 'kg') {
-                    totalRollsNeeded = Math.ceil(targetVal / calc.netWeightKg);
+                    // Используем -1e-9 чтобы избежать ошибки округления float (например 3000 / 15.0000000001 = 200.0000001 -> 201)
+                    totalRollsNeeded = Math.ceil((targetVal / calc.netWeightKg) - 1e-9);
                 } else if (unit === 'rolls') {
                     totalRollsNeeded = Math.ceil(targetVal);
                 } else if (unit === 'm') {
-                    totalRollsNeeded = Math.ceil(targetVal / calc.lengthMeters);
+                    totalRollsNeeded = Math.ceil((targetVal / calc.lengthMeters) - 1e-9);
                 } else if (unit === 'sqm') {
-                    totalRollsNeeded = Math.ceil(targetVal / calc.areaSqM);
+                    totalRollsNeeded = Math.ceil((targetVal / calc.areaSqM) - 1e-9);
                 }
             }
 
@@ -2343,15 +2471,24 @@
             const actualNetKg = totalRollsNeeded * calc.netWeightKg;
             const actualLengthM = totalRollsNeeded * calc.lengthMeters;
 
-            // Расчет последней паллеты (если есть неполный остаток)
+            // Точный расчет последней паллеты (учитывает в т.ч. пирамидальную укладку, где ярусы разного размера)
             let lastPalletRolls = remainderRolls === 0 ? (totalRollsNeeded > 0 ? rollsPerPallet : 0) : remainderRolls;
-            const rollsPerTier = Math.max(1, calc.rollsPerTier);
-            const lastPalletTiers = Math.ceil(lastPalletRolls / rollsPerTier);
-            const sheetH = state.useInterlayer ? state.interlayerThickMm : 0;
-            const lastPalletSheets = state.useInterlayer ? lastPalletTiers : 0;
-            const lastPalletHeightMm = lastPalletRolls > 0
-                ? Math.round(145 + lastPalletTiers * (state.orientation === 'vertical' ? state.rollWidth : calc.D) + lastPalletSheets * sheetH)
-                : 0;
+            let lastPalletTiers = 0;
+            let lastPalletSheets = 0;
+            let lastPalletHeightMm = 0;
+
+            if (lastPalletRolls > 0) {
+                for (let t = 1; t <= state.tiers; t++) {
+                    const st = calculatePalletStructureForTiers(t, calc.D, calc.B, state.rollGap);
+                    if (st.totalRollsOnPallet >= lastPalletRolls || t === state.tiers) {
+                        lastPalletTiers = t;
+                        lastPalletSheets = st.sheetsPerPallet;
+                        lastPalletHeightMm = st.totalHeightMm;
+                        break;
+                    }
+                }
+            }
+
             const lastPalletGrossKg = lastPalletRolls > 0
                 ? (lastPalletRolls * calc.grossWeightKg + state.palletWoodWeight + (state.useInterlayer ? lastPalletSheets * state.interlayerWeightKg + state.stretchWrapWeightKg : 0))
                 : 0;
@@ -2365,7 +2502,7 @@
                 + totalSheetsAllPallets * (state.useInterlayer ? state.interlayerWeightKg : 0)
                 + totalWrapAllPallets;
 
-            document.getElementById('batchActualNetKg').textContent = `${Math.round(actualNetKg).toLocaleString('ru-RU')} кг нетто (${Math.round(actualLengthM * calc.layers * (state.rollWidth / 1000)).toLocaleString('ru-RU')} м²)`;
+            document.getElementById('batchActualNetKg').textContent = `${actualNetKg.toFixed(1)} кг нетто (${Math.round(actualLengthM * calc.layers * (state.rollWidth / 1000)).toLocaleString('ru-RU')} м²)`;
             document.getElementById('batchTotalRolls').textContent = totalRollsNeeded.toLocaleString('ru-RU');
             document.getElementById('batchTotalLengthSub').textContent = `${Math.round(actualLengthM).toLocaleString('ru-RU')} пог. м`;
 
@@ -2391,7 +2528,7 @@
             document.getElementById('batchConsumablesSub').textContent = `Шпуль: ${totalRollsNeeded} шт | Прокладок: ${totalSheetsAllPallets} л.`;
         }
 
-        function updateUI(skipLengthInputSync = false) {
+        function updateUI(skipLengthInputSync = false, skipWeightInputSync = false) {
             if (state.autoSelectScheme && state.orientation === 'vertical') {
                 autoSelectBestScheme();
             }
@@ -2401,7 +2538,19 @@
             // Синхронизация поля ввода метража (если пользователь сейчас не печатает в самом поле метража)
             const inputRollLengthEl = document.getElementById('inputRollLength');
             if (!skipLengthInputSync && inputRollLengthEl && document.activeElement !== inputRollLengthEl) {
-                inputRollLengthEl.value = Math.round(calc.lengthMeters);
+                inputRollLengthEl.value = Math.round(calc.lengthMeters * 10) / 10;
+            }
+
+            // Синхронизация поля целевого веса 1 рулона нетто
+            const inputTargetNetWeightEl = document.getElementById('inputTargetNetWeight');
+            if (!skipWeightInputSync && inputTargetNetWeightEl && document.activeElement !== inputTargetNetWeightEl) {
+                inputTargetNetWeightEl.value = calc.netWeightKg.toFixed(2);
+            }
+
+            // Синхронизация поля внешнего диаметра (если диаметр вырос из-за увеличения толщины шпули)
+            const inputRollDiamEl = document.getElementById('inputRollDiam');
+            if (inputRollDiamEl && document.activeElement !== inputRollDiamEl) {
+                inputRollDiamEl.value = calc.D;
             }
 
             // Обновление текста наружного диаметра шпули и эффективной толщины витка
@@ -2481,22 +2630,38 @@
          * 6. ОБРАБОТЧИКИ СОБЫТИЙ И ПЕРЕКЛЮЧАТЕЛИ
          ***********************************************************************/
         // Обратный расчет внешнего диаметра рулона D (мм) из заданного метража L (пог. м)
-        function setLengthAndRecalcDiam(lengthMetersVal, skipLengthInputSync = false) {
-            const L = Math.max(1, lengthMetersVal);
+        function setLengthAndRecalcDiam(lengthMetersVal, skipLengthInputSync = false, skipWeightInputSync = false) {
+            const L = Math.max(0.5, lengthMetersVal);
+            state.exactLockedLength = L;
+            state.rollLength = L;
+
             const d_core = state.coreInnerDiam + 2 * Math.max(0, state.coreWall);
-            const effective_h_um = Math.max(1, state.thicknessMicrons) * Math.max(1, state.windingLayers);
+            const effective_h_um = Math.max(0.5, state.thicknessMicrons) * Math.max(1, state.windingLayers);
 
             // Формула: D = sqrt( (4 * effective_h_um * L) / pi + d_core^2 )
             const newD = Math.sqrt((4 * effective_h_um * L) / Math.PI + d_core * d_core);
-            const roundedD = Math.min(1200, Math.max(d_core + 2, Math.round(newD)));
+            const preciseD = Math.min(1200, Math.max(d_core + 1, Math.round(newD * 10) / 10));
 
-            state.rollDiam = roundedD;
-            document.getElementById('inputRollDiam').value = roundedD;
-            document.getElementById('sliderRollDiam').value = Math.min(800, Math.max(100, roundedD));
+            state.rollDiam = preciseD;
+            document.getElementById('inputRollDiam').value = preciseD;
+            document.getElementById('sliderRollDiam').value = Math.min(800, Math.max(100, Math.round(preciseD)));
             if (!skipLengthInputSync) {
-                document.getElementById('inputRollLength').value = Math.round(L);
+                document.getElementById('inputRollLength').value = Math.round(L * 10) / 10;
             }
-            updateUI(skipLengthInputSync);
+            updateUI(skipLengthInputSync, skipWeightInputSync);
+        }
+
+        // Обратный расчет метража и диаметра D из желаемого чистого веса 1 рулона (кг нетто)
+        function setNetWeightAndRecalc(targetNetKg) {
+            const m_net = Math.max(0.05, targetNetKg);
+            const h_um = Math.max(0.5, state.thicknessMicrons);
+            const layers = Math.max(1, state.windingLayers);
+            const B = Math.max(10, state.rollWidth);
+            const rho = Math.max(0.1, state.density);
+
+            // m_net = (L * (B/1000) * layers * h_um * rho) / 1000  =>  L = (m_net * 1e6) / (B * layers * h_um * rho)
+            const requiredLengthM = (m_net * 1000000) / (B * layers * h_um * rho);
+            setLengthAndRecalcDiam(requiredLengthM, false, true);
         }
 
         function selectWindingLayers(layersCount) {
@@ -2512,9 +2677,10 @@
             });
 
             if (state.lockMode === 'length') {
-                const targetLen = parseFloat(document.getElementById('inputRollLength').value) || state.rollLength;
+                const targetLen = state.exactLockedLength || state.rollLength;
                 setLengthAndRecalcDiam(targetLen, true);
             } else {
+                state.exactLockedLength = null;
                 updateUI();
             }
         }
@@ -2528,12 +2694,14 @@
         }
 
         function setQuickLength(meters) {
-            state.rollLength = meters;
             setLengthAndRecalcDiam(meters, false);
         }
 
         function setCalcLockMode(mode) {
             state.lockMode = mode;
+            if (mode === 'length' && state.exactLockedLength === null) {
+                state.exactLockedLength = state.rollLength;
+            }
             const btnLen = document.getElementById('btnLockLength');
             const btnDiam = document.getElementById('btnLockDiam');
             if (mode === 'length') {
@@ -2552,6 +2720,7 @@
         }
 
         function setQuickDiam(val) {
+            state.exactLockedLength = null;
             state.rollDiam = val;
             document.getElementById('inputRollDiam').value = val;
             document.getElementById('sliderRollDiam').value = val;
@@ -2562,9 +2731,10 @@
             state.thicknessMicrons = val;
             document.getElementById('inputThickness').value = val;
             if (state.lockMode === 'length') {
-                const targetLen = parseFloat(document.getElementById('inputRollLength').value) || state.rollLength;
+                const targetLen = state.exactLockedLength || state.rollLength;
                 setLengthAndRecalcDiam(targetLen, true);
             } else {
+                state.exactLockedLength = null;
                 updateUI();
             }
         }
@@ -2597,9 +2767,10 @@
             }
 
             if (state.lockMode === 'length') {
-                const targetLen = parseFloat(document.getElementById('inputRollLength').value) || state.rollLength;
+                const targetLen = state.exactLockedLength || state.rollLength;
                 setLengthAndRecalcDiam(targetLen, true);
             } else {
+                state.exactLockedLength = null;
                 updateUI();
             }
         }
@@ -2729,12 +2900,12 @@
 
             const currentScheme = state.schemes.find(s => s.id === state.activeSchemeId) || state.schemes[0];
             document.getElementById('modalPalletType').value = state.palletType;
-            document.getElementById('modalMaxDiam').value = state.rollDiam;
-            document.getElementById('modalSchemeTitle').value = `До ${state.rollDiam} мм — своя схема`;
+            document.getElementById('modalMaxDiam').value = Math.round(state.rollDiam);
+            document.getElementById('modalSchemeTitle').value = `До ${Math.round(state.rollDiam)} мм — своя схема`;
 
             const pDim = PALLET_DIMENSIONS[state.palletType];
             if (currentScheme) {
-                modalPointsMm = getActualRollPositionsMm(currentScheme, pDim.w, pDim.h, state.rollDiam);
+                modalPointsMm = getActualRollPositionsMm(currentScheme, pDim.w, pDim.h, state.rollDiam, state.rollGap);
             } else {
                 generateModalPointsFromFormula();
             }
@@ -2748,45 +2919,10 @@
         }
 
         function handleModalPatternChange() {
-            const pat = document.getElementById('modalPatternType').value;
+            const pattern = document.getElementById('modalPatternType').value;
             const formulaBox = document.getElementById('modalRowFormulaBox');
-            const palletKey = document.getElementById('modalPalletType').value;
-            const pDim = PALLET_DIMENSIONS[palletKey];
-            const maxD = Math.max(80, parseFloat(document.getElementById('modalMaxDiam').value) || 250);
-            const r = maxD / 2;
-
-            if (pat === 'freeform') {
+            if (pattern === 'freeform') {
                 formulaBox.classList.add('opacity-50');
-                drawModalEditorCanvas();
-            } else if (pat === 'corners_center') {
-                // Схема «Конверт» (4 рулона прижаты к углам паллеты + 1 в центре)
-                formulaBox.classList.add('opacity-50');
-                modalPointsMm = [
-                    { x: pDim.w - r, y: r },
-                    { x: pDim.w - r, y: pDim.h - r },
-                    { x: r,          y: pDim.h - r },
-                    { x: r,          y: r },
-                    { x: pDim.w / 2, y: pDim.h / 2 }
-                ];
-                selectedModalPointIdx = 4;
-                syncSelectedRollInputs();
-                drawModalEditorCanvas();
-            } else if (pat === 'perimeter') {
-                // Расстановка вдоль бортов паллеты (прижатая к краям)
-                formulaBox.classList.add('opacity-50');
-                const cols = Math.max(2, Math.floor(pDim.w / maxD));
-                const pts = [];
-                const stepX = cols > 1 ? (pDim.w - maxD) / (cols - 1) : 0;
-                for (let c = 0; c < cols; c++) {
-                    pts.push({ x: r + c * stepX, y: r });
-                    if (pDim.h >= maxD * 2) {
-                        pts.push({ x: r + c * stepX, y: pDim.h - r });
-                    }
-                }
-                modalPointsMm = pts;
-                selectedModalPointIdx = 0;
-                syncSelectedRollInputs();
-                drawModalEditorCanvas();
             } else {
                 formulaBox.classList.remove('opacity-50');
                 generateModalPointsFromFormula();
@@ -2794,31 +2930,84 @@
         }
 
         function generateModalPointsFromFormula() {
-            const raw = document.getElementById('modalRowsInput').value;
-            const rowCounts = raw.split(/[,;\s]+/).map(v => parseInt(v, 10)).filter(n => !isNaN(n) && n > 0 && n <= 20);
+            const palletKey = document.getElementById('modalPalletType').value;
+            const pDim = PALLET_DIMENSIONS[palletKey];
+            const maxD = Math.max(80, parseFloat(document.getElementById('modalMaxDiam').value) || 250);
+            const r = maxD / 2;
+            const pattern = document.getElementById('modalPatternType').value;
+
+            if (pattern === 'corners_center') {
+                modalPointsMm = [
+                    { x: r, y: r },
+                    { x: pDim.w - r, y: r },
+                    { x: r, y: pDim.h - r },
+                    { x: pDim.w - r, y: pDim.h - r },
+                    { x: pDim.w / 2, y: pDim.h / 2 }
+                ];
+                selectedModalPointIdx = modalPointsMm.length - 1;
+                syncSelectedRollInputs();
+                drawModalEditorCanvas();
+                return;
+            }
+
+            if (pattern === 'perimeter') {
+                const cols = Math.max(2, Math.floor(pDim.w / maxD));
+                const rows = Math.max(2, Math.floor(pDim.h / maxD));
+                const pts = [];
+                const stepX = cols > 1 ? (pDim.w - maxD) / (cols - 1) : 0;
+                const stepY = rows > 1 ? (pDim.h - maxD) / (rows - 1) : 0;
+                for (let c = 0; c < cols; c++) pts.push({ x: r + c * stepX, y: r });
+                for (let c = 0; c < cols; c++) pts.push({ x: r + c * stepX, y: pDim.h - r });
+                for (let rw = 1; rw < rows - 1; rw++) {
+                    pts.push({ x: r, y: r + rw * stepY });
+                    pts.push({ x: pDim.w - r, y: r + rw * stepY });
+                }
+                modalPointsMm = pts;
+                selectedModalPointIdx = 0;
+                syncSelectedRollInputs();
+                drawModalEditorCanvas();
+                return;
+            }
+
+            const rawStr = document.getElementById('modalRowsInput').value;
+            const rowCounts = rawStr.split(/[,;\s]+/).map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n > 0 && n <= 20);
             if (!rowCounts.length) return;
 
-            const maxD = Math.max(80, parseFloat(document.getElementById('modalMaxDiam').value) || 250);
-            const pattern = document.getElementById('modalPatternType').value;
             const s3 = Math.sqrt(3) / 2;
-
             const pts = [];
-            rowCounts.forEach((count, rIdx) => {
-                const isOddRow = (rIdx % 2 === 1);
-                const xShift = (pattern === 'staggered' && isOddRow) ? (maxD / 2) : 0;
-                const yStep = (pattern === 'staggered') ? (maxD * s3) : maxD;
 
-                for (let c = 0; c < count; c++) {
-                    const yWave = (pattern === 'wave' && c % 2 === 1) ? (maxD * 0.3) : 0;
-                    pts.push({
-                        x: xShift + c * maxD,
-                        y: rIdx * yStep + yWave
-                    });
+            if (pattern === 'grid') {
+                rowCounts.forEach((cnt, rIdx) => {
+                    for (let c = 0; c < cnt; c++) {
+                        pts.push({ x: c * maxD, y: rIdx * maxD });
+                    }
+                });
+            } else if (pattern === 'staggered') {
+                const maxCols = Math.max(...rowCounts);
+                rowCounts.forEach((cnt, rIdx) => {
+                    const xOffset = ((maxCols - cnt) * maxD) / 2;
+                    for (let c = 0; c < cnt; c++) {
+                        pts.push({ x: xOffset + c * maxD, y: rIdx * maxD * s3 });
+                    }
+                });
+            } else if (pattern === 'wave') {
+                const cols = rowCounts[0] || 4;
+                const rows = rowCounts.length;
+                for (let c = 0; c < cols; c++) {
+                    const yShift = (c % 2 === 1) ? maxD * 0.32 : 0;
+                    for (let rw = 0; rw < rows; rw++) {
+                        pts.push({ x: c * (maxD * 0.92), y: rw * maxD + yShift });
+                    }
                 }
-            });
+            } else {
+                return;
+            }
 
             modalPointsMm = pts;
-            selectedModalPointIdx = modalPointsMm.length ? 0 : -1;
+            centerModalRolls();
+        }
+
+        function handleModalPalletTypeChange() {
             centerModalRolls();
         }
 
@@ -3323,6 +3512,7 @@
             saveCustomSchemesToStorage();
 
             state.palletType = palletKey;
+            state.exactLockedLength = null;
             state.rollDiam = maxD;
             document.getElementById('inputRollDiam').value = maxD;
             document.getElementById('sliderRollDiam').value = Math.min(800, maxD);
@@ -3345,14 +3535,16 @@
             inputRollDiam.addEventListener('input', (e) => {
                 const v = parseFloat(e.target.value);
                 if (!isNaN(v) && v >= 50) {
+                    state.exactLockedLength = null;
                     state.rollDiam = v;
-                    sliderRollDiam.value = Math.min(800, Math.max(100, v));
+                    sliderRollDiam.value = Math.min(800, Math.max(100, Math.round(v)));
                     updateUI();
                 }
             });
 
             sliderRollDiam.addEventListener('input', (e) => {
                 const v = parseFloat(e.target.value);
+                state.exactLockedLength = null;
                 state.rollDiam = v;
                 inputRollDiam.value = v;
                 updateUI();
@@ -3363,18 +3555,30 @@
             inputRollLength.addEventListener('input', (e) => {
                 const v = parseFloat(e.target.value);
                 if (!isNaN(v) && v > 0) {
-                    setLengthAndRecalcDiam(v, true);
+                    setLengthAndRecalcDiam(v, true, false);
                 }
             });
+
+            // Ввод целевого чистого веса 1 рулона (пересчитывает метраж и диаметр D)
+            const inputTargetNetWeight = document.getElementById('inputTargetNetWeight');
+            if (inputTargetNetWeight) {
+                inputTargetNetWeight.addEventListener('input', (e) => {
+                    const v = parseFloat(e.target.value);
+                    if (!isNaN(v) && v > 0) {
+                        setNetWeightAndRecalc(v);
+                    }
+                });
+            }
 
             document.getElementById('inputCoreWall').addEventListener('input', (e) => {
                 const v = parseFloat(e.target.value);
                 if (!isNaN(v) && v >= 0) {
                     state.coreWall = v;
                     if (state.lockMode === 'length') {
-                        const targetLen = parseFloat(document.getElementById('inputRollLength').value) || state.rollLength;
+                        const targetLen = state.exactLockedLength || state.rollLength;
                         setLengthAndRecalcDiam(targetLen, true);
                     } else {
+                        state.exactLockedLength = null;
                         updateUI();
                     }
                 }
@@ -3385,9 +3589,10 @@
                 if (!isNaN(v) && v > 0) {
                     state.thicknessMicrons = v;
                     if (state.lockMode === 'length') {
-                        const targetLen = parseFloat(document.getElementById('inputRollLength').value) || state.rollLength;
+                        const targetLen = state.exactLockedLength || state.rollLength;
                         setLengthAndRecalcDiam(targetLen, true);
                     } else {
+                        state.exactLockedLength = null;
                         updateUI();
                     }
                 }
@@ -3530,16 +3735,26 @@
 
             document.getElementById('btnResetDefaults').addEventListener('click', () => {
                 state.rollDiam = 235;
-                state.rollLength = 734;
+                state.rollLength = 734.15;
+                state.exactLockedLength = null;
                 state.lockMode = 'length';
                 state.coreInnerDiam = 76;
                 state.coreWall = 8;
                 state.thicknessMicrons = 50;
+                state.windingLayers = 1;
                 state.rollWidth = 400;
                 state.density = 0.92;
                 state.rollGap = 0;
                 state.tiers = 3;
                 state.palletWoodWeight = 22;
+                state.maxHeightLimitMm = 1800;
+                state.maxWeightLimitKg = 850;
+                state.useInterlayer = true;
+                state.interlayerThickMm = 4;
+                state.interlayerWeightKg = 0.9;
+                state.stretchWrapWeightKg = 1.2;
+                state.batchOrderValue = 3000;
+                state.batchOrderUnit = 'kg';
                 state.autoSelectScheme = true;
 
                 document.getElementById('inputRollDiam').value = 235;
@@ -3552,9 +3767,19 @@
                 document.getElementById('inputRollGap').value = 0;
                 document.getElementById('inputTiers').value = 3;
                 document.getElementById('inputPalletWeight').value = 22;
+                document.getElementById('inputMaxHeightLimit').value = 1800;
+                document.getElementById('inputMaxWeightLimit').value = 850;
+                document.getElementById('chkUseInterlayer').checked = true;
+                document.getElementById('interlayerSettingsGrid').classList.remove('opacity-40');
+                document.getElementById('inputSheetThickness').value = 4;
+                document.getElementById('inputSheetWeight').value = 0.9;
+                document.getElementById('inputWrapWeight').value = 1.2;
+                document.getElementById('inputBatchValue').value = 3000;
+                document.getElementById('selectBatchUnit').value = 'kg';
                 document.getElementById('chkAutoScheme').checked = true;
 
                 setCalcLockMode('length');
+                selectWindingLayers(1);
                 selectCore(76);
                 selectPallet('1200x800');
                 selectOrientation('vertical');
@@ -3625,6 +3850,47 @@
                 }
             });
 
+            // Поддержка сенсорного перетаскивания (Touch) для конструктора схем на смартфонах и планшетах
+            modalCanvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length !== 1) return;
+                const pos = getMousePosOnModalPallet(e);
+                const maxD = Math.max(80, parseFloat(document.getElementById('modalMaxDiam').value) || 250);
+                let hitIdx = -1;
+                for (let i = modalPointsMm.length - 1; i >= 0; i--) {
+                    if (Math.hypot(modalPointsMm[i].x - pos.mmX, modalPointsMm[i].y - pos.mmY) <= maxD / 2) {
+                        hitIdx = i;
+                        break;
+                    }
+                }
+                if (hitIdx !== -1) {
+                    e.preventDefault();
+                    draggingPointIdx = hitIdx;
+                    selectedModalPointIdx = hitIdx;
+                    document.getElementById('modalPatternType').value = 'freeform';
+                    syncSelectedRollInputs();
+                    drawModalEditorCanvas();
+                }
+            }, { passive: false });
+
+            modalCanvas.addEventListener('touchmove', (e) => {
+                if (draggingPointIdx === -1 || e.touches.length !== 1) return;
+                e.preventDefault();
+                const pos = getMousePosOnModalPallet(e);
+                const snapped = applyModalSnapping(pos.mmX, pos.mmY, draggingPointIdx);
+                modalPointsMm[draggingPointIdx].x = snapped.x;
+                modalPointsMm[draggingPointIdx].y = snapped.y;
+                syncSelectedRollInputs();
+                drawModalEditorCanvas();
+            }, { passive: false });
+
+            modalCanvas.addEventListener('touchend', () => {
+                if (draggingPointIdx !== -1) {
+                    draggingPointIdx = -1;
+                    activeSnapGuides = [];
+                    drawModalEditorCanvas();
+                }
+            });
+
             modalCanvas.addEventListener('dblclick', (e) => {
                 const pos = getMousePosOnModalPallet(e);
                 const snapped = applyModalSnapping(pos.mmX, pos.mmY, -1);
@@ -3652,6 +3918,7 @@
         Object.assign(window, {
             setQuickDiam,
             setQuickLength,
+            setNetWeightAndRecalc,
             setCalcLockMode,
             setRollGap,
             setThickness,
@@ -3669,6 +3936,7 @@
             openCustomModalFromCurrent,
             closeCustomModal,
             handleModalPatternChange,
+            handleModalPalletTypeChange,
             generateModalPointsFromFormula,
             setModalFormulaPreset,
             updateModalSnapSettings,
