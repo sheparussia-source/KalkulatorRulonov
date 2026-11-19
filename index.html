@@ -16,16 +16,19 @@
         .mono {
             font-family: 'JetBrains Mono', monospace;
         }
-        /* Custom range slider */
-        input[type="range"] {
+        /* Кастомный ползунок с динамической заливкой и точной центровкой по бегунку (18px) */
+        input[type="range"].diam-slider {
             -webkit-appearance: none;
             appearance: none;
-            height: 6px;
-            background: #cbd5e1;
+            width: 100%;
+            height: 8px;
             border-radius: 999px;
             outline: none;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
         }
-        input[type="range"]::-webkit-slider-thumb {
+        input[type="range"].diam-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
             width: 18px;
@@ -33,14 +36,74 @@
             border-radius: 50%;
             background: #2563eb;
             cursor: pointer;
-            border: 2px solid #ffffff;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-            transition: transform 0.1s ease;
+            border: 2.5px solid #ffffff;
+            box-shadow: 0 1px 4px rgba(15, 23, 42, 0.35);
+            transition: transform 0.12s ease, background-color 0.12s ease;
         }
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.15);
+        input[type="range"].diam-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.16);
             background: #1d4ed8;
         }
+        input[type="range"].diam-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            border: 2.5px solid #ffffff;
+            box-shadow: 0 1px 4px rgba(15, 23, 42, 0.35);
+            transition: transform 0.12s ease, background-color 0.12s ease;
+        }
+        input[type="range"].diam-slider::-moz-range-track {
+            background: transparent;
+            height: 8px;
+        }
+
+        /* Контейнер линейной шкалы с компенсацией радиуса бегунка (9px) */
+        .diam-ticks-wrapper {
+            position: relative;
+            height: 24px;
+            margin-left: 9px;
+            margin-right: 9px;
+            margin-top: 4px;
+            user-select: none;
+        }
+        .diam-tick-item {
+            position: absolute;
+            top: 0;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 0 2px;
+        }
+        .diam-tick-mark {
+            width: 1.5px;
+            height: 5px;
+            background-color: #94a3b8;
+            margin-bottom: 2px;
+            transition: background-color 0.15s ease, height 0.15s ease;
+        }
+        .diam-tick-label {
+            font-size: 11px;
+            line-height: 1.1;
+            font-weight: 500;
+            color: #64748b;
+            white-space: nowrap;
+            transition: color 0.15s ease, font-weight 0.15s ease;
+        }
+        .diam-tick-item:hover .diam-tick-label,
+        .diam-tick-item.is-active .diam-tick-label {
+            color: #2563eb;
+            font-weight: 700;
+        }
+        .diam-tick-item:hover .diam-tick-mark,
+        .diam-tick-item.is-active .diam-tick-mark {
+            background-color: #2563eb;
+            height: 7px;
+        }
+
         .scheme-card {
             transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -52,7 +115,6 @@
             background-color: #eff6ff;
             box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
         }
-        /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -71,7 +133,7 @@
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <!-- Top Header -->
+    <!-- Верхняя панель навигации -->
     <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
         <div class="max-w-[1600px] mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-3">
@@ -82,18 +144,18 @@
                 </div>
                 <div>
                     <h1 class="text-lg sm:text-xl font-bold tracking-tight">RollCalc Pro <span class="text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-400/30 px-2 py-0.5 rounded-full ml-1">Паллетирование и Намотка</span></h1>
-                    <p class="text-xs text-slate-400">Калькулятор площади, веса рулонов и схем укладки на паллеты (1200×800, 1100×1200, 1200×1200)</p>
+                    <p class="text-xs text-slate-400">Калькулятор площади, метража, веса рулонов и схем укладки на паллеты (1200×800, 1100×1200, 1200×1200)</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-2 sm:gap-3">
-                <button id="btnOpenCustomModal" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow transition cursor-pointer">
+                <button type="button" id="btnOpenCustomModal" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow transition cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
                     <span>Добавить свой вариант укладки</span>
                 </button>
-                <button id="btnResetDefaults" class="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition cursor-pointer" title="Сбросить параметры к стандартным">
+                <button type="button" id="btnResetDefaults" class="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition cursor-pointer" title="Сбросить параметры к стандартным">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
@@ -103,13 +165,13 @@
         </div>
     </header>
 
-    <!-- Main Content Grid -->
+    <!-- Основная сетка приложения -->
     <main class="max-w-[1600px] w-full mx-auto px-4 sm:px-6 py-6 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        <!-- LEFT COLUMN: Inputs (4 cols on lg) -->
+        <!-- ЛЕВАЯ КОЛОНКА: Ввод параметров (4 колонки) -->
         <div class="lg:col-span-4 space-y-5">
 
-            <!-- Card 1: Параметры рулона и материала -->
+            <!-- БЛОК 1: Параметры рулона и материала -->
             <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
                     <div class="flex items-center gap-2">
@@ -120,25 +182,20 @@
                 </div>
 
                 <div class="space-y-4">
-                    <!-- Внешний диаметр рулона D -->
+                    <!-- Внешний диаметр рулона D с точной линейной шкалой -->
                     <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/60">
                         <div class="flex justify-between items-center mb-1.5">
                             <label for="inputRollDiam" class="text-xs font-semibold uppercase tracking-wider text-slate-600">Внешний диаметр рулона (D)</label>
                             <div class="flex items-center gap-1">
                                 <input type="number" id="inputRollDiam" min="80" max="1200" step="0.5" value="235"
-                                    class="mono w-22 text-right font-bold text-blue-700 bg-white border border-slate-300 rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                    class="mono w-24 text-right font-bold text-blue-700 bg-white border border-slate-300 rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                 <span class="text-xs font-semibold text-slate-500">мм</span>
                             </div>
                         </div>
-                        <input type="range" id="sliderRollDiam" min="100" max="800" step="1" value="235" class="w-full my-1">
-                        <div class="flex justify-between text-[11px] text-slate-400 font-medium mt-0.5">
-                            <span>100 мм</span>
-                            <span class="cursor-pointer hover:text-blue-600" onclick="setQuickDiam(200)">200</span>
-                            <span class="cursor-pointer hover:text-blue-600" onclick="setQuickDiam(240)">240</span>
-                            <span class="cursor-pointer hover:text-blue-600" onclick="setQuickDiam(295)">295</span>
-                            <span class="cursor-pointer hover:text-blue-600" onclick="setQuickDiam(400)">400</span>
-                            <span class="cursor-pointer hover:text-blue-600" onclick="setQuickDiam(600)">600</span>
-                            <span>800 мм</span>
+
+                        <div class="py-1">
+                            <input type="range" id="sliderRollDiam" min="100" max="800" step="1" value="235" class="diam-slider">
+                            <div id="diamScaleTicks" class="diam-ticks-wrapper" aria-label="Шкала диаметров рулона в мм"></div>
                         </div>
                     </div>
 
@@ -169,20 +226,20 @@
                         <!-- Обратный подбор по целевому чистому весу 1 рулона (кг нетто) -->
                         <div class="pt-2 border-t border-blue-200/60 flex items-center justify-between gap-2">
                             <div>
-                                <label for="inputTargetNetWeight" class="text-[11px] font-semibold text-slate-700 block">Подбор по весу 1 рулона (Нетто):</label>
+                                <label for="inputTargetNetWeight" class="text-[11px] font-semibold text-slate-700 block">Целевой чистый вес 1 рулона (Нетто):</label>
                                 <span class="text-[10px] text-slate-500">Вычисляет метраж и Ø под нужный вес</span>
                             </div>
                             <div class="flex items-center gap-1">
-                                <input type="number" id="inputTargetNetWeight" min="0.1" max="1000" step="0.1" value="13.5"
+                                <input type="number" id="inputTargetNetWeight" min="0.1" max="2000" step="0.1" value="16.88"
                                     class="mono w-20 text-right font-bold text-emerald-700 bg-white border border-blue-300 rounded-lg px-2 py-1 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                 <span class="text-xs font-semibold text-slate-600">кг</span>
                             </div>
                         </div>
 
                         <!-- Переключатель режима пересчета при смене толщины или шпули -->
-                        <div class="pt-2 border-t border-blue-200/60 flex items-center justify-between text-[11px]">
+                        <div class="pt-2 border-t border-blue-200/60 flex items-center justify-between text-[11px] gap-1">
                             <span class="text-slate-600 font-medium">При смене толщины / шпули:</span>
-                            <div class="inline-flex rounded-lg bg-white p-0.5 border border-blue-200">
+                            <div class="inline-flex rounded-lg bg-white p-0.5 border border-blue-200 shrink-0">
                                 <button type="button" id="btnLockLength" onclick="setCalcLockMode('length')"
                                     class="px-2 py-0.5 rounded-md font-semibold bg-blue-600 text-white transition cursor-pointer" title="Сохранять точный метраж, менять внешний диаметр D">
                                     Менять Ø рулона
@@ -195,7 +252,7 @@
                         </div>
                     </div>
 
-                    <!-- Выбор шпули (76 или 152 мм) -->
+                    <!-- Выбор шпули (76 или 152 мм) + стенка и плотность картона -->
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Выбор шпули (внутренний Ø)</label>
                         <div class="grid grid-cols-2 gap-2.5">
@@ -218,16 +275,28 @@
                             </button>
                         </div>
 
-                        <!-- Core wall thickness & outer core diameter setting -->
-                        <div class="mt-2.5 flex items-center justify-between bg-slate-50 px-3 py-2 rounded-lg border border-slate-200/70 text-xs">
-                            <div class="flex items-center gap-2">
-                                <label for="inputCoreWall" class="text-slate-600 font-medium">Толщина стенки шпули:</label>
-                                <input type="number" id="inputCoreWall" min="0" max="30" step="0.5" value="8"
-                                    class="mono w-14 text-center font-semibold bg-white border border-slate-300 rounded px-1.5 py-0.5 text-xs focus:outline-none focus:border-blue-500">
-                                <span class="text-slate-500">мм</span>
+                        <div class="mt-2.5 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200/70 text-xs space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-1.5">
+                                    <label for="inputCoreWall" class="text-slate-600 font-medium">Стенка шпули:</label>
+                                    <input type="number" id="inputCoreWall" min="0" max="35" step="0.5" value="8"
+                                        class="mono w-14 text-center font-semibold bg-white border border-slate-300 rounded px-1.5 py-0.5 text-xs focus:outline-none focus:border-blue-500">
+                                    <span class="text-slate-500">мм</span>
+                                </div>
+                                <div class="text-slate-500">
+                                    Наруж. Ø: <strong id="lblCoreOuterDiam" class="mono text-slate-800">92 мм</strong>
+                                </div>
                             </div>
-                            <div class="text-slate-500">
-                                Наруж. Ø: <strong id="lblCoreOuterDiam" class="mono text-slate-800">92 мм</strong>
+                            <div class="flex items-center justify-between pt-1 border-t border-slate-200/60">
+                                <div class="flex items-center gap-1.5">
+                                    <label for="inputCoreDensity" class="text-slate-600 font-medium">Плотность картона:</label>
+                                    <input type="number" id="inputCoreDensity" min="0.2" max="2.0" step="0.02" value="0.72"
+                                        class="mono w-14 text-center font-semibold bg-white border border-slate-300 rounded px-1.5 py-0.5 text-xs focus:outline-none focus:border-blue-500">
+                                    <span class="text-slate-500">г/см³</span>
+                                </div>
+                                <div class="text-slate-500">
+                                    Вес гильзы: <strong id="lblSingleCoreWeight" class="mono text-slate-800">0.76 кг</strong>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -235,38 +304,38 @@
                     <!-- Толщина материала (мкм) и Ширина рулона (мм) -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
-                            <label for="inputThickness" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Толщина материала</label>
+                            <label for="inputThickness" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Толщина 1 слоя</label>
                             <div class="flex items-center gap-1.5">
                                 <input type="number" id="inputThickness" min="1" max="2000" step="0.5" value="50"
                                     class="mono w-full font-bold text-slate-900 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                 <span class="text-xs font-semibold text-slate-500">мкм</span>
                             </div>
                             <div class="flex gap-1 mt-2 flex-wrap">
-                                <button type="button" onclick="setThickness(20)" class="text-[11px] px-1.5 py-0.5 bg-white border border-slate-200 rounded hover:border-blue-400 text-slate-600">20</button>
-                                <button type="button" onclick="setThickness(30)" class="text-[11px] px-1.5 py-0.5 bg-white border border-slate-200 rounded hover:border-blue-400 text-slate-600">30</button>
-                                <button type="button" onclick="setThickness(50)" class="text-[11px] px-1.5 py-0.5 bg-white border border-slate-200 rounded hover:border-blue-400 text-slate-600">50</button>
-                                <button type="button" onclick="setThickness(80)" class="text-[11px] px-1.5 py-0.5 bg-white border border-slate-200 rounded hover:border-blue-400 text-slate-600">80</button>
-                                <button type="button" onclick="setThickness(100)" class="text-[11px] px-1.5 py-0.5 bg-white border border-slate-200 rounded hover:border-blue-400 text-slate-600">100</button>
+                                <button type="button" onclick="setThickness(20)" class="text-[11px] px-1.5 py-0.5 bg-white border border-slate-200 rounded hover:border-blue-400 text-slate-600 cursor-pointer">20</button>
+                                <button type="button" onclick="setThickness(30)" class="text-[11px] px-1.5 py-0.5 bg-white border border-slate-200 rounded hover:border-blue-400 text-slate-600 cursor-pointer">30</button>
+                                <button type="button" onclick="setThickness(50)" class="text-[11px] px-1.5 py-0.5 bg-white border border-slate-200 rounded hover:border-blue-400 text-slate-600 cursor-pointer">50</button>
+                                <button type="button" onclick="setThickness(80)" class="text-[11px] px-1.5 py-0.5 bg-white border border-slate-200 rounded hover:border-blue-400 text-slate-600 cursor-pointer">80</button>
+                                <button type="button" onclick="setThickness(100)" class="text-[11px] px-1.5 py-0.5 bg-white border border-slate-200 rounded hover:border-blue-400 text-slate-600 cursor-pointer">100</button>
                             </div>
                         </div>
 
                         <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
                             <label for="inputWidth" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Ширина рулона (B)</label>
                             <div class="flex items-center gap-1.5">
-                                <input type="number" id="inputWidth" min="20" max="3000" step="5" value="400"
+                                <input type="number" id="inputWidth" min="20" max="3000" step="5" value="500"
                                     class="mono w-full font-bold text-slate-900 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                 <span class="text-xs font-semibold text-slate-500">мм</span>
                             </div>
                             <div class="flex gap-1 mt-2 flex-wrap">
-                                <button type="button" onclick="setWidth(250)" class="text-[11px] px-1.5 py-0.5 bg-white border border-slate-200 rounded hover:border-blue-400 text-slate-600">250</button>
-                                <button type="button" onclick="setWidth(400)" class="text-[11px] px-1.5 py-0.5 bg-white border border-slate-200 rounded hover:border-blue-400 text-slate-600">400</button>
-                                <button type="button" onclick="setWidth(500)" class="text-[11px] px-1.5 py-0.5 bg-white border border-slate-200 rounded hover:border-blue-400 text-slate-600">500</button>
-                                <button type="button" onclick="setWidth(1000)" class="text-[11px] px-1.5 py-0.5 bg-white border border-slate-200 rounded hover:border-blue-400 text-slate-600">1000</button>
+                                <button type="button" onclick="setWidth(250)" class="text-[11px] px-1.5 py-0.5 bg-white border border-slate-200 rounded hover:border-blue-400 text-slate-600 cursor-pointer">250</button>
+                                <button type="button" onclick="setWidth(400)" class="text-[11px] px-1.5 py-0.5 bg-white border border-slate-200 rounded hover:border-blue-400 text-slate-600 cursor-pointer">400</button>
+                                <button type="button" onclick="setWidth(500)" class="text-[11px] px-1.5 py-0.5 bg-white border border-slate-200 rounded hover:border-blue-400 text-slate-600 cursor-pointer">500</button>
+                                <button type="button" onclick="setWidth(1000)" class="text-[11px] px-1.5 py-0.5 bg-white border border-slate-200 rounded hover:border-blue-400 text-slate-600 cursor-pointer">1000</button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- (Пункт 7) Тип намотки: Полотно (1 сл.) / Рукав-Полурукав (2 сл.) / С фальцами (4 сл.) -->
+                    <!-- Формат намотки: Полотно (1 сл.) / Рукав-Полурукав (2 сл.) / С фальцами (4 сл.) -->
                     <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
                         <div class="flex justify-between items-center mb-1.5">
                             <label class="text-xs font-semibold uppercase tracking-wider text-slate-600">Формат намотки (Слоев в витке)</label>
@@ -291,7 +360,7 @@
                         </div>
                     </div>
 
-                    <!-- Плотность материала (для расчета веса) -->
+                    <!-- Плотность материала -->
                     <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
                         <div class="flex justify-between items-center mb-1.5">
                             <label for="selectMaterial" class="text-xs font-semibold uppercase tracking-wider text-slate-600">Материал и плотность (ρ)</label>
@@ -301,11 +370,11 @@
                             <select id="selectMaterial" class="sm:col-span-8 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs sm:text-sm font-medium text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                 <option value="0.92" selected>ПЭВД / LDPE / Стрейч (0.92 г/см³)</option>
                                 <option value="0.95">ПЭНД / HDPE (0.95 г/см³)</option>
-                                <option value="0.91">БОПП / BOPP / ПП (0.91 г/см³)</option>
+                                <option value="0.91">БОПП / BOPP (0.91 г/см³)</option>
+                                <option value="0.90">СПП / CPP каст-ПП (0.90 г/см³)</option>
                                 <option value="1.38">ПЭТ / PET лавсан (1.38 г/см³)</option>
                                 <option value="1.14">ПА / PA полиамид (1.14 г/см³)</option>
                                 <option value="0.80">Бумага / Крафт (0.80 г/см³)</option>
-                                <option value="1.20">Фольга / Ламинат (1.20 г/см³)</option>
                                 <option value="custom">Своя плотность...</option>
                             </select>
                             <div class="sm:col-span-4 flex items-center gap-1">
@@ -318,7 +387,7 @@
                 </div>
             </section>
 
-            <!-- Card 2: Паллета и ориентация укладки -->
+            <!-- БЛОК 2: Паллета и ориентация укладки -->
             <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
                     <div class="flex items-center gap-2">
@@ -336,17 +405,17 @@
                             <button type="button" id="btnPallet_1200x800" onclick="selectPallet('1200x800')"
                                 class="pallet-btn p-2.5 rounded-xl border-2 border-blue-600 bg-blue-50/70 text-center transition cursor-pointer">
                                 <div class="mono font-bold text-xs sm:text-sm text-slate-900">1200×800</div>
-                                <div class="text-[10px] text-slate-500 mt-0.5">Европаллета (EUR)</div>
+                                <div class="text-[10px] text-slate-500 mt-0.5">EUR • 22 кг</div>
                             </button>
                             <button type="button" id="btnPallet_1100x1200" onclick="selectPallet('1100x1200')"
                                 class="pallet-btn p-2.5 rounded-xl border-2 border-slate-200 bg-white hover:bg-slate-50 text-center transition cursor-pointer">
                                 <div class="mono font-bold text-xs sm:text-sm text-slate-900">1100×1200</div>
-                                <div class="text-[10px] text-slate-500 mt-0.5">Промышленная</div>
+                                <div class="text-[10px] text-slate-500 mt-0.5">FIN/IND • 25 кг</div>
                             </button>
                             <button type="button" id="btnPallet_1200x1200" onclick="selectPallet('1200x1200')"
                                 class="pallet-btn p-2.5 rounded-xl border-2 border-slate-200 bg-white hover:bg-slate-50 text-center transition cursor-pointer">
                                 <div class="mono font-bold text-xs sm:text-sm text-slate-900">1200×1200</div>
-                                <div class="text-[10px] text-slate-500 mt-0.5">Квадратная</div>
+                                <div class="text-[10px] text-slate-500 mt-0.5">Квадрат • 27 кг</div>
                             </button>
                         </div>
                     </div>
@@ -358,7 +427,6 @@
                             <button type="button" id="btnOrient_vertical" onclick="selectOrientation('vertical')"
                                 class="p-3 rounded-xl border-2 border-blue-600 bg-blue-50/70 text-left flex items-center gap-2.5 transition cursor-pointer">
                                 <div class="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
-                                    <!-- Top view circle icon -->
                                     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <circle cx="12" cy="12" r="8"/>
                                         <circle cx="12" cy="12" r="3"/>
@@ -373,7 +441,6 @@
                             <button type="button" id="btnOrient_horizontal" onclick="selectOrientation('horizontal')"
                                 class="p-3 rounded-xl border-2 border-slate-200 bg-white hover:bg-slate-50 text-left flex items-center gap-2.5 transition cursor-pointer">
                                 <div class="w-9 h-9 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center shrink-0">
-                                    <!-- Side view cylinder icon -->
                                     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <rect x="3" y="6" width="18" height="12" rx="2"/>
                                         <line x1="8" y1="6" x2="8" y2="18"/>
@@ -387,21 +454,25 @@
                             </button>
                         </div>
 
-                        <!-- Опции для горизонтальной укладки -->
-                        <div id="horizOptionsPanel" class="hidden mt-2.5 p-3 bg-slate-50 rounded-xl border border-slate-200/70 grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Ось рулона по паллете</label>
-                                <select id="selectHorizAxis" class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-medium text-slate-800">
-                                    <option value="along_length">Вдоль длинной стороны</option>
-                                    <option value="along_width">Вдоль короткой стороны</option>
-                                </select>
+                        <div id="horizOptionsPanel" class="hidden mt-2.5 p-3 bg-slate-50 rounded-xl border border-slate-200/70 space-y-2">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Ось рулона по паллете</label>
+                                    <select id="selectHorizAxis" class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-medium text-slate-800">
+                                        <option value="along_length">Вдоль длинной стороны</option>
+                                        <option value="along_width">Вдоль короткой стороны</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Укладка ярусов</label>
+                                    <select id="selectHorizStackType" class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-medium text-slate-800">
+                                        <option value="straight">Прямыми рядами (в столбик)</option>
+                                        <option value="pyramid">Пирамидой «в люльку» (-1 в ряду)</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div>
-                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Укладка ярусов</label>
-                                <select id="selectHorizStackType" class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-medium text-slate-800">
-                                    <option value="straight">Прямыми рядами (в столбик)</option>
-                                    <option value="pyramid">В люльку / Пирамидой (-1 в ряду)</option>
-                                </select>
+                            <div id="pyramidLimitHint" class="hidden text-[11px] text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200">
+                                Макс. ярусов для текущей пирамиды: <strong id="lblMaxPyramidTiers" class="mono">3</strong> (определяется числом рулонов в основании)
                             </div>
                         </div>
                     </div>
@@ -436,24 +507,24 @@
                         <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
                             <label for="inputTiers" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Ярусов по высоте</label>
                             <div class="flex items-center gap-1">
-                                <button type="button" onclick="changeTiers(-1)" class="w-8 h-8 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 font-bold text-slate-700">-</button>
+                                <button type="button" onclick="changeTiers(-1)" class="w-8 h-8 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 font-bold text-slate-700 cursor-pointer">-</button>
                                 <input type="number" id="inputTiers" min="1" max="15" step="1" value="3"
                                     class="mono w-full text-center font-bold text-slate-900 bg-white border border-slate-300 rounded-lg py-1 text-sm">
-                                <button type="button" onclick="changeTiers(1)" class="w-8 h-8 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 font-bold text-slate-700">+</button>
+                                <button type="button" onclick="changeTiers(1)" class="w-8 h-8 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 font-bold text-slate-700 cursor-pointer">+</button>
                             </div>
                         </div>
 
                         <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
                             <label for="inputPalletWeight" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Вес пустого поддона</label>
                             <div class="flex items-center gap-1.5">
-                                <input type="number" id="inputPalletWeight" min="0" max="100" step="1" value="22"
+                                <input type="number" id="inputPalletWeight" min="0" max="100" step="0.5" value="22"
                                     class="mono w-full font-bold text-slate-900 bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-sm">
                                 <span class="text-xs font-semibold text-slate-500">кг</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- (Пункт 2) Ограничители по высоте и весу паллеты + Автоподбор ярусов -->
+                    <!-- Ограничители по высоте и весу паллеты -->
                     <div class="bg-indigo-50/50 p-3.5 rounded-xl border border-indigo-200/80 space-y-2.5">
                         <div class="flex items-center justify-between">
                             <div>
@@ -478,7 +549,7 @@
                             <div class="bg-white p-2 rounded-lg border border-indigo-100">
                                 <label for="inputMaxWeightLimit" class="block text-[10px] font-semibold uppercase text-slate-500 mb-0.5">Макс. вес брутто</label>
                                 <div class="flex items-center gap-1">
-                                    <input type="number" id="inputMaxWeightLimit" min="100" max="3000" step="50" value="850"
+                                    <input type="number" id="inputMaxWeightLimit" min="100" max="3000" step="50" value="1000"
                                         class="mono w-full font-bold text-slate-800 text-xs sm:text-sm focus:outline-none">
                                     <span class="text-[11px] text-slate-400 font-semibold">кг</span>
                                 </div>
@@ -490,7 +561,7 @@
                         </div>
                     </div>
 
-                    <!-- (Пункт 4) Межъярусные прокладки и упаковка паллеты -->
+                    <!-- Межъярусные прокладки и упаковка паллеты -->
                     <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 space-y-2.5">
                         <div class="flex items-center justify-between">
                             <label class="inline-flex items-center gap-2 cursor-pointer select-none">
@@ -512,7 +583,7 @@
                             <div class="bg-white p-2 rounded-lg border border-slate-200">
                                 <label for="inputSheetWeight" class="block text-[10px] text-slate-500 font-medium">Вес 1 прокладки</label>
                                 <div class="flex items-center gap-1 mt-0.5">
-                                    <input type="number" id="inputSheetWeight" min="0" max="20" step="0.1" value="0.9"
+                                    <input type="number" id="inputSheetWeight" min="0" max="20" step="0.1" value="0.8"
                                         class="mono w-full font-bold text-slate-800 text-xs focus:outline-none">
                                     <span class="text-[10px] text-slate-400">кг</span>
                                 </div>
@@ -520,14 +591,14 @@
                             <div class="bg-white p-2 rounded-lg border border-slate-200">
                                 <label for="inputWrapWeight" class="block text-[10px] text-slate-500 font-medium">Стрейч + уголки</label>
                                 <div class="flex items-center gap-1 mt-0.5">
-                                    <input type="number" id="inputWrapWeight" min="0" max="30" step="0.1" value="1.2"
+                                    <input type="number" id="inputWrapWeight" min="0" max="30" step="0.1" value="1.5"
                                         class="mono w-full font-bold text-slate-800 text-xs focus:outline-none">
                                     <span class="text-[10px] text-slate-400">кг</span>
                                 </div>
                             </div>
                         </div>
                         <div class="text-[11px] text-slate-500 flex justify-between items-center pt-0.5">
-                            <span>Листов картона/ДВП на 1 паллету (под нижний + между ярусами):</span>
+                            <span>Листов картона/ДВП на 1 паллету:</span>
                             <strong id="lblSheetsPerPallet" class="mono text-slate-800">3 шт</strong>
                         </div>
                     </div>
@@ -535,12 +606,11 @@
             </section>
         </div>
 
-        <!-- RIGHT COLUMN: Results, Visual Canvas & Stacking Schemes (8 cols on lg) -->
+        <!-- ПРАВАЯ КОЛОНКА: KPI, чертежи, партия и схемы укладки (8 колонок) -->
         <div class="lg:col-span-8 space-y-6">
 
-            <!-- Top KPI Summary Cards (5 cards) -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-3.5">
-                <!-- Площадь 1 рулона -->
+            <!-- Верхние 4 крупные карточки итогов -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5">
                 <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm relative overflow-hidden">
                     <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Площадь 1 рулона</div>
                     <div class="mt-1 flex items-baseline gap-1.5">
@@ -549,11 +619,10 @@
                     </div>
                     <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between border-t border-slate-100 pt-1.5">
                         <span>Ширина × Толщ.:</span>
-                        <strong id="resRollSpecSub" class="mono text-slate-800">400мм × 50мкм</strong>
+                        <strong id="resRollSpecSub" class="mono text-slate-800">500мм × 50мкм</strong>
                     </div>
                 </div>
 
-                <!-- Метраж 1 рулона -->
                 <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm relative overflow-hidden">
                     <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Метраж 1 рулона</div>
                     <div class="mt-1 flex items-baseline gap-1.5">
@@ -566,51 +635,44 @@
                     </div>
                 </div>
 
-                <!-- Вес 1 рулона -->
                 <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm relative overflow-hidden">
-                    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Вес 1 рулона (Брутто)</div>
+                    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Вес 1 рулона (Нетто / Брутто)</div>
                     <div class="mt-1 flex items-baseline gap-1.5">
-                        <span id="resRollGrossWeight" class="mono text-2xl sm:text-3xl font-extrabold text-slate-900">0.00</span>
+                        <span id="resRollNetWeightMain" class="mono text-xl sm:text-2xl font-extrabold text-slate-900">0.00</span>
+                        <span class="text-slate-400 font-bold">/</span>
+                        <span id="resRollGrossWeight" class="mono text-xl sm:text-2xl font-extrabold text-indigo-600">0.00</span>
                         <span class="text-xs font-bold text-slate-500">кг</span>
                     </div>
                     <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between border-t border-slate-100 pt-1.5">
-                        <span>Нетто / Шпуля:</span>
-                        <strong id="resRollNetAndCore" class="mono text-slate-800">0.00 / 0.00 кг</strong>
+                        <span>Вес шпули:</span>
+                        <strong id="resRollCoreSub" class="mono text-slate-800">0.00 кг</strong>
                     </div>
                 </div>
 
-                <!-- Количество на паллете -->
-                <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm relative overflow-hidden">
-                    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Рулонов на паллете</div>
-                    <div class="mt-1 flex items-baseline gap-1.5">
-                        <span id="resTotalRolls" class="mono text-2xl sm:text-3xl font-extrabold text-indigo-600">0</span>
-                        <span class="text-xs font-bold text-slate-500">шт</span>
-                    </div>
-                    <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between border-t border-slate-100 pt-1.5">
-                        <span>В 1 ярусе × ярусов:</span>
-                        <strong id="resRollsBreakdown" class="mono text-slate-800">0 × 0</strong>
-                    </div>
-                </div>
-
-                <!-- Сводка по всей паллете -->
-                <div class="bg-slate-900 text-white rounded-2xl p-4 shadow-sm relative overflow-hidden col-span-2 sm:col-span-1">
-                    <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Итого на паллете</div>
-                    <div class="mt-1 flex items-baseline gap-1.5">
-                        <span id="resPalletGrossWeight" class="mono text-2xl sm:text-3xl font-extrabold text-emerald-400">0</span>
-                        <span class="text-xs font-bold text-slate-300">кг брутто</span>
+                <div class="bg-slate-900 text-white rounded-2xl p-4 shadow-sm relative overflow-hidden">
+                    <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Всего на паллете</div>
+                    <div class="mt-1 flex items-baseline justify-between gap-2">
+                        <div>
+                            <span id="resTotalRolls" class="mono text-2xl sm:text-3xl font-extrabold text-white">0</span>
+                            <span class="text-xs font-bold text-slate-300">шт</span>
+                        </div>
+                        <div class="text-right">
+                            <span id="resPalletGrossWeight" class="mono text-xl sm:text-2xl font-extrabold text-emerald-400">0</span>
+                            <span class="text-xs font-bold text-slate-300">кг</span>
+                        </div>
                     </div>
                     <div class="mt-2 text-[11px] text-slate-300 flex items-center justify-between border-t border-slate-800 pt-1.5">
-                        <span>Площадь / Метраж:</span>
-                        <strong id="resPalletTotalArea" class="mono text-white">0 м² / 0 м</strong>
+                        <span id="resRollsBreakdown" class="mono text-slate-200">0 шт × 0 яр.</span>
+                        <strong id="resPalletTotalArea" class="mono text-emerald-300">0 м²</strong>
                     </div>
                 </div>
             </div>
 
-            <!-- Interactive Blueprint Visualization (Top View + Side View) -->
+            <!-- Интерактивный чертеж 2D + 3D -->
             <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5">
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3 mb-4">
                     <div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
                             <span class="w-2.5 h-6 bg-emerald-600 rounded-full"></span>
                             <h2 class="font-bold text-slate-800 text-base">Интерактивный чертеж укладки на паллету</h2>
                             <span id="badgeActiveSchemeName" class="text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full">Схема</span>
@@ -630,7 +692,7 @@
                     </div>
                 </div>
 
-                <!-- Warning Banner if roll overhangs pallet or exceeds scheme max diameter -->
+                <!-- Предупреждение о свесе или пересечении рулонов -->
                 <div id="overhangWarningBanner" class="hidden mb-4 p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-center justify-between gap-3">
                     <div class="flex items-center gap-2">
                         <svg class="w-5 h-5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -638,14 +700,13 @@
                         </svg>
                         <span id="overhangWarningText">Внимание: текущий диаметр превышает рекомендуемый для выбранной схемы или выступает за край паллеты.</span>
                     </div>
-                    <button type="button" onclick="triggerOptimalScheme()" class="shrink-0 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white font-semibold rounded-lg shadow-xs transition cursor-pointer">
+                    <button type="button" id="btnPickOptimalScheme" onclick="triggerOptimalScheme()" class="shrink-0 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white font-semibold rounded-lg shadow-xs transition cursor-pointer">
                         Подобрать оптимальную
                     </button>
                 </div>
 
-                <!-- Dual Canvas Container: Top View (Left) & Side View + Detailed Metrics (Right) -->
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-                    <!-- Top-Down View Canvas -->
+                    <!-- Вид сверху -->
                     <div class="md:col-span-7 bg-slate-50 rounded-xl border border-slate-200 p-3 flex flex-col items-center justify-center relative">
                         <div class="w-full flex justify-between items-center text-[11px] font-semibold text-slate-500 mb-1 px-1">
                             <span>ВИД СВЕРХУ (План яруса)</span>
@@ -664,7 +725,7 @@
                         </div>
                     </div>
 
-                    <!-- Side View 3D Interactive Model & Extended Technical Specs -->
+                    <!-- 3D-модель и детализация -->
                     <div class="md:col-span-5 flex flex-col gap-3">
                         <div class="bg-slate-50 rounded-xl border border-slate-200 p-3 flex flex-col items-center justify-center relative">
                             <div class="w-full flex flex-wrap justify-between items-center text-[11px] font-semibold text-slate-500 mb-1.5 px-1 gap-1">
@@ -675,9 +736,7 @@
                                 <span id="lblTotalPalletHeight" class="mono text-blue-700 font-bold">Высота: 0 мм</span>
                             </div>
 
-                            <!-- 3D Viewport Container -->
                             <div id="container3DView" class="w-full h-[220px] sm:h-[240px] rounded-lg overflow-hidden bg-gradient-to-b from-slate-100 to-slate-200/80 border border-slate-200/80 relative cursor-grab active:cursor-grabbing select-none">
-                                <!-- Quick Camera Preset Buttons -->
                                 <div class="absolute top-2 left-2 z-10 flex gap-1 bg-white/85 backdrop-blur-xs p-1 rounded-lg border border-slate-200/80 shadow-xs text-[10px] font-semibold text-slate-600">
                                     <button type="button" onclick="set3DCameraPreset('iso')" class="px-1.5 py-0.5 rounded hover:bg-blue-50 hover:text-blue-600 transition cursor-pointer" title="Изометрический 3D вид">3D</button>
                                     <button type="button" onclick="set3DCameraPreset('front')" class="px-1.5 py-0.5 rounded hover:bg-blue-50 hover:text-blue-600 transition cursor-pointer" title="Вид спереди (по длине)">Спереди</button>
@@ -690,9 +749,8 @@
                             </div>
                         </div>
 
-                        <!-- Detailed Engineering Table -->
                         <div class="bg-slate-50 rounded-xl border border-slate-200 p-3.5 text-xs space-y-1.5">
-                            <div class="font-bold text-slate-700 uppercase tracking-wider text-[11px] pb-1 border-b border-slate-200">Детализация расчетов</div>
+                            <div class="font-bold text-slate-700 uppercase tracking-wider text-[11px] pb-1 border-b border-slate-200">Детализация расчетов паллеты</div>
                             <div class="flex justify-between py-0.5">
                                 <span class="text-slate-500">Площадь пленки на паллете:</span>
                                 <strong id="detTotalArea" class="mono text-slate-900">0 м²</strong>
@@ -718,7 +776,7 @@
                 </div>
             </section>
 
-            <!-- (Пункт 1) Section 2.5: Калькулятор партии / Планирование заказа -->
+            <!-- Планирование партии / Расчет под объем заказа -->
             <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5">
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3 mb-4">
                     <div>
@@ -738,7 +796,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-                    <!-- Ввод целевого объема партии -->
                     <div class="lg:col-span-4 bg-amber-50/50 rounded-xl border border-amber-200/80 p-3.5 flex flex-col justify-between">
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-amber-950 mb-2">Целевой объем заказа</label>
@@ -754,12 +811,11 @@
                             </div>
                         </div>
                         <div class="mt-3 pt-2.5 border-t border-amber-200/60 text-[11px] text-slate-600 flex justify-between">
-                            <span>Фактический выход партии (с округлением до целых рулонов):</span>
+                            <span>Фактический выход партии:</span>
                             <strong id="batchActualNetKg" class="mono text-slate-900 font-bold">0 кг нетто</strong>
                         </div>
                     </div>
 
-                    <!-- Карточки результатов по партии -->
                     <div class="lg:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-3">
                         <div class="bg-slate-50 rounded-xl border border-slate-200 p-3 flex flex-col justify-between">
                             <span class="text-[11px] font-semibold uppercase text-slate-500">Всего рулонов</span>
@@ -799,7 +855,7 @@
                 </div>
             </section>
 
-            <!-- Section 3: Схемы укладки (Карточки как на фото + Пользовательские) -->
+            <!-- Схемы укладки -->
             <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5">
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3 mb-4">
                     <div>
@@ -813,29 +869,25 @@
                     <div class="flex items-center gap-2">
                         <div class="inline-flex rounded-lg bg-slate-100 p-1 text-xs font-medium">
                             <button type="button" id="tabFilterAll" onclick="setSchemeFilter('all')" class="px-2.5 py-1 rounded-md bg-white text-slate-800 shadow-sm cursor-pointer">Все схемы</button>
-                            <button type="button" id="tabFilterStandard" onclick="setSchemeFilter('standard')" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 cursor-pointer">Типовые (с фото)</button>
-                            <button type="button" id="tabFilterCustom" onclick="setSchemeFilter('custom')" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 cursor-pointer">Мои схемы</button>
+                            <button type="button" id="tabFilterStandard" onclick="setSchemeFilter('standard')" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 cursor-pointer">Типовые (9 с фото)</button>
+                            <button type="button" id="tabFilterCustom" onclick="setSchemeFilter('custom')" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 cursor-pointer">Широкие и мои</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Grid of Visual Scheme Cards (replicating the uploaded image style) -->
-                <div id="schemesGridContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3.5">
-                    <!-- Populated dynamically via JS -->
-                </div>
+                <div id="schemesGridContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3.5"></div>
             </section>
 
         </div>
     </main>
 
-    <!-- MODAL: Добавление / Редактирование своего варианта укладки -->
+    <!-- Модальное окно конструктора схем -->
     <div id="customSchemeModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
         <div class="bg-white rounded-2xl max-w-5xl w-full shadow-2xl border border-slate-200 overflow-hidden my-6">
-            <!-- Modal Header -->
             <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
                 <div>
                     <h3 class="font-bold text-base sm:text-lg">Конструктор схемы укладки</h3>
-                    <p class="text-xs text-slate-400">Задайте ряды, используйте магниты к краям паллеты или перетаскивайте рулоны мышкой</p>
+                    <p class="text-xs text-slate-400">Задайте ряды, используйте магниты к краям паллеты или перетаскивайте рулоны мышкой / пальцем</p>
                 </div>
                 <button type="button" onclick="closeCustomModal()" class="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -844,9 +896,7 @@
                 </button>
             </div>
 
-            <!-- Modal Body -->
             <div class="p-5 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <!-- Form controls (Left 5 cols) -->
                 <div class="lg:col-span-5 space-y-3.5">
                     <div>
                         <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Название варианта</label>
@@ -882,7 +932,6 @@
                         </select>
                     </div>
 
-                    <!-- Generator inputs for rows -->
                     <div id="modalRowFormulaBox" class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 mb-1">Количество рулонов по рядам (через запятую)</label>
@@ -899,15 +948,9 @@
                         </div>
                     </div>
 
-                    <!-- Настройки прилипания (Магниты) и ограничений -->
                     <div class="bg-indigo-50/70 p-3.5 rounded-xl border border-indigo-200/80 space-y-2.5">
                         <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold uppercase tracking-wider text-indigo-950 flex items-center gap-1.5">
-                                <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
-                                </svg>
-                                Прилипание и контроль границ
-                            </span>
+                            <span class="text-xs font-bold uppercase tracking-wider text-indigo-950">Прилипание и контроль границ</span>
                             <span class="text-[10px] font-semibold text-indigo-600 bg-white px-2 py-0.5 rounded border border-indigo-200">Магниты</span>
                         </div>
 
@@ -936,7 +979,6 @@
                         </label>
                     </div>
 
-                    <!-- Точные координаты выбранного рулона -->
                     <div id="selectedRollCoordsPanel" class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs">
                         <div class="flex items-center justify-between mb-1.5">
                             <span class="font-bold text-slate-700">Выбранный рулон: <span id="lblSelectedRollNum" class="text-blue-600">#1</span></span>
@@ -957,20 +999,18 @@
                     </div>
                 </div>
 
-                <!-- Interactive Editor Canvas (Right 7 cols) -->
                 <div class="lg:col-span-7 flex flex-col">
                     <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                         <span class="text-xs font-bold uppercase text-slate-600">Чертеж-редактор (<span id="modalRollCountBadge" class="text-blue-600">0</span> рул.)</span>
                         <div class="flex flex-wrap gap-1.5">
                             <button type="button" onclick="addRollToModalCanvas()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg cursor-pointer shadow-2xs">+ Рулон</button>
-                            <button type="button" onclick="snapAllModalRollsToEdges()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg cursor-pointer shadow-2xs" title="Прижать крайние рулоны вплотную к бортам паллеты">Прижать к краям</button>
-                            <button type="button" onclick="resolveModalCollisions()" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg cursor-pointer shadow-2xs" title="Автоматически раздвинуть пересекающиеся рулоны">Убрать нахлесты</button>
-                            <button type="button" onclick="centerModalRolls()" class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-lg cursor-pointer" title="Отцентрировать группу рулонов по центру паллеты">Центрировать</button>
+                            <button type="button" onclick="snapAllModalRollsToEdges()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg cursor-pointer shadow-2xs">Прижать к краям</button>
+                            <button type="button" onclick="resolveModalCollisions()" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg cursor-pointer shadow-2xs">Убрать нахлесты</button>
+                            <button type="button" onclick="centerModalRolls()" class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-lg cursor-pointer">Центрировать</button>
                             <button type="button" onclick="clearModalRolls()" class="px-2.5 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs font-semibold rounded-lg cursor-pointer">Очистить</button>
                         </div>
                     </div>
 
-                    <!-- Статус пересечений и свесов в конструкторе -->
                     <div id="modalCollisionBanner" class="mb-2 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between bg-emerald-50 text-emerald-800 border border-emerald-200">
                         <span id="modalCollisionText">✓ Все рулоны размещены корректно, пересечений и свесов нет.</span>
                         <span id="modalFreeSpaceInfo" class="mono text-[11px] font-bold"></span>
@@ -991,7 +1031,6 @@
                 </div>
             </div>
 
-            <!-- Modal Footer -->
             <div class="bg-slate-50 border-t border-slate-200 px-6 py-3.5 flex items-center justify-between">
                 <span id="modalValidationMsg" class="text-xs text-slate-500">Схема сохраняется в браузере и будет доступна в общем списке.</span>
                 <div class="flex items-center gap-2.5">
@@ -1004,28 +1043,77 @@
 
     <script>
         /***********************************************************************
-         * 1. ПРЕДУСТАНОВЛЕННЫЕ СХЕМЫ УКЛАДКИ (ТОЧНО КАК НА ФОТО + ДЛЯ 1100/1200)
+         * 0. ТОЧНАЯ ЛИНЕЙНАЯ ШКАЛА ВНЕШНЕГО ДИАМЕТРА РУЛОНА (D)
          ***********************************************************************/
-        // Координаты (nx, ny) задаются в нормализованных единицах от 0.0 до 1.0 относительно габарита паллеты (1200x800),
-        // либо пересчитываются геометрически, чтобы круги плотно прилегали друг к другу как на схеме пользователя.
-        function generatePreloadedSchemes() {
-            const s3 = Math.sqrt(3) / 2; // ~0.866 для плотной сотовой (шахматной) укладки
+        const DIAM_SLIDER_MIN = 100;
+        const DIAM_SLIDER_MAX = 800;
+        const DIAM_SCALE_TICKS = [
+            { value: 100, label: '100 мм' },
+            { value: 200, label: '200' },
+            { value: 240, label: '240' },
+            { value: 295, label: '295' },
+            { value: 400, label: '400' },
+            { value: 600, label: '600' },
+            { value: 800, label: '800 мм' }
+        ];
 
-            // Helper: переводит миллиметровые координаты центров на паллете WxH в нормализованные [0..1]
-            // с автоматическим центрированием группы внутри паллеты
-            function buildCenteredNormalized(pointsMm, maxD, palletW = 1200, palletH = 800, alignTopLeft = false) {
+        function buildDiameterScaleTicks() {
+            const container = document.getElementById('diamScaleTicks');
+            if (!container) return;
+
+            const span = DIAM_SLIDER_MAX - DIAM_SLIDER_MIN;
+            container.innerHTML = DIAM_SCALE_TICKS.map(tick => {
+                const pct = Math.max(0, Math.min(100, ((tick.value - DIAM_SLIDER_MIN) / span) * 100));
+                return `
+                    <div class="diam-tick-item" data-tick-value="${tick.value}" style="left: ${pct.toFixed(4)}%;"
+                         onclick="setQuickDiam(${tick.value})" title="Установить диаметр ${tick.value} мм">
+                        <span class="diam-tick-mark"></span>
+                        <span class="diam-tick-label mono">${tick.label}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateDiameterSliderVisual(currentDiam) {
+            const slider = document.getElementById('sliderRollDiam');
+            const ticksContainer = document.getElementById('diamScaleTicks');
+            if (!slider) return;
+
+            const clamped = Math.max(DIAM_SLIDER_MIN, Math.min(DIAM_SLIDER_MAX, currentDiam));
+            const pct = ((clamped - DIAM_SLIDER_MIN) / (DIAM_SLIDER_MAX - DIAM_SLIDER_MIN)) * 100;
+
+            slider.style.background = `linear-gradient(to right, #2563eb 0%, #2563eb ${pct.toFixed(3)}%, #cbd5e1 ${pct.toFixed(3)}%, #cbd5e1 100%)`;
+
+            if (ticksContainer) {
+                const items = ticksContainer.querySelectorAll('.diam-tick-item');
+                items.forEach(item => {
+                    const tv = parseFloat(item.getAttribute('data-tick-value'));
+                    if (Math.abs(currentDiam - tv) <= 1.5) {
+                        item.classList.add('is-active');
+                    } else {
+                        item.classList.remove('is-active');
+                    }
+                });
+            }
+        }
+
+        /***********************************************************************
+         * 1. ПРЕДУСТАНОВЛЕННЫЕ СХЕМЫ УКЛАДКИ (9 ТИПОВЫХ + ДЛЯ 1100/1200)
+         ***********************************************************************/
+        function generatePreloadedSchemes() {
+            const s3 = Math.sqrt(3) / 2;
+
+            function buildCenteredNormalized(pointsMm, maxD, palletW = 1200, palletH = 800) {
                 if (!pointsMm.length) return [];
                 let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
                 for (const p of pointsMm) {
-                    if (p.x - maxD/2 < minX) minX = p.x - maxD/2;
-                    if (p.x + maxD/2 > maxX) maxX = p.x + maxD/2;
-                    if (p.y - maxD/2 < minY) minY = p.y - maxD/2;
-                    if (p.y + maxD/2 > maxY) maxY = p.y + maxD/2;
+                    if (p.x - maxD / 2 < minX) minX = p.x - maxD / 2;
+                    if (p.x + maxD / 2 > maxX) maxX = p.x + maxD / 2;
+                    if (p.y - maxD / 2 < minY) minY = p.y - maxD / 2;
+                    if (p.y + maxD / 2 > maxY) maxY = p.y + maxD / 2;
                 }
-                const groupW = maxX - minX;
-                const groupH = maxY - minY;
-                const offsetX = alignTopLeft ? (40 - minX) : ((palletW - groupW) / 2 - minX);
-                const offsetY = alignTopLeft ? (40 - minY) : ((palletH - groupH) / 2 - minY);
+                const offsetX = (palletW - (maxX - minX)) / 2 - minX;
+                const offsetY = (palletH - (maxY - minY)) / 2 - minY;
 
                 return pointsMm.map(p => ({
                     nx: (p.x + offsetX) / palletW,
@@ -1033,38 +1121,28 @@
                 }));
             }
 
-            // 1. До 200 мм - 24 рулона без смещения (сетка 6 x 4)
+            // 9 типовых схем с изображения (под базовую паллету 1200x800)
             const pts24 = [];
             for (let r = 0; r < 4; r++) {
-                for (let c = 0; c < 6; c++) {
-                    pts24.push({ x: c * 200, y: r * 200 });
-                }
+                for (let c = 0; c < 6; c++) pts24.push({ x: c * 200, y: r * 200 });
             }
 
-            // 2. До 240 мм - 18 рулонов со смещением (ряды 5 - 4 - 5 - 4)
             const pts18 = [];
             const d18 = 240;
-            const rowY18 = [0, d18 * s3, d18 * s3 * 2, d18 * s3 * 3];
             for (let r = 0; r < 4; r++) {
                 const count = (r % 2 === 0) ? 5 : 4;
                 const xStart = (r % 2 === 0) ? 0 : d18 / 2;
-                for (let c = 0; c < count; c++) {
-                    pts18.push({ x: xStart + c * d18, y: rowY18[r] });
-                }
+                for (let c = 0; c < count; c++) pts18.push({ x: xStart + c * d18, y: r * d18 * s3 });
             }
 
-            // 3. До 295 мм - 11 рулонов со смещением (ряды 4 - 3 - 4)
             const pts11 = [];
             const d11 = 295;
             for (let r = 0; r < 3; r++) {
                 const count = (r % 2 === 0) ? 4 : 3;
                 const xStart = (r % 2 === 0) ? 0 : d11 / 2;
-                for (let c = 0; c < count; c++) {
-                    pts11.push({ x: xStart + c * d11, y: r * d11 * s3 });
-                }
+                for (let c = 0; c < count; c++) pts11.push({ x: xStart + c * d11, y: r * d11 * s3 });
             }
 
-            // 4. До 310 мм - 8 рулонов со смещением (2 волнообразных ряда по 4 рулона как на фото)
             const pts8 = [];
             const d8 = 310;
             const dx8 = d8 * 0.92;
@@ -1074,7 +1152,6 @@
                 pts8.push({ x: c * dx8, y: d8 + yShift });
             }
 
-            // 5. До 325 мм - 7 рулонов со смещением (слева 3x2 + 1 справа посередине как на фото)
             const pts7 = [];
             const d7 = 325;
             for (let c = 0; c < 3; c++) {
@@ -1083,15 +1160,11 @@
             }
             pts7.push({ x: 2 * d7 + d7 * s3, y: d7 / 2 });
 
-            // 6. До 400 мм - 6 рулонов без смещения (сетка 3 x 2)
             const pts6 = [];
             for (let r = 0; r < 2; r++) {
-                for (let c = 0; c < 3; c++) {
-                    pts6.push({ x: c * 400, y: r * 400 });
-                }
+                for (let c = 0; c < 3; c++) pts6.push({ x: c * 400, y: r * 400 });
             }
 
-            // 7. До 430 мм - 4 рулона со смещением (2 сверху, 2 снизу со сдвигом вправо)
             const pts4 = [
                 { x: 0, y: 0 },
                 { x: 430, y: 0 },
@@ -1099,186 +1172,64 @@
                 { x: 645, y: 430 * s3 }
             ];
 
-            // 8. До 460 мм - 3 рулона со смещением (2 по краям сверху, 1 снизу по центру)
-            // При разведении верхних рулонов по ширине 1200 мм центральный рулон садится глубже между ними
             const pts3 = [
                 { x: 0, y: 0 },
                 { x: 720, y: 0 },
                 { x: 360, y: Math.sqrt(460 * 460 - 360 * 360) }
             ];
 
-            // 9. До 600 мм - 2 рулона без смещения (2 в ряд)
             const pts2 = [
                 { x: 0, y: 0 },
                 { x: 600, y: 0 }
             ];
 
-            // 10. До 800 мм - 1 крупный рулон по центру паллеты
-            const pts1 = [
-                { x: 0, y: 0 }
-            ];
+            const pts1 = [{ x: 0, y: 0 }];
 
-            // Дополнительно: базовые схемы для широких паллет 1200х1200 и 1100х1200
-            const pts9_sq = [];
-            for (let r = 0; r < 3; r++) {
-                for (let c = 0; c < 3; c++) pts9_sq.push({ x: c * 400, y: r * 400 });
+            // Плотные сетки для широких паллет 1100x1200 и 1200x1200
+            const pts25_sq = [];
+            for (let r = 0; r < 5; r++) {
+                for (let c = 0; c < 5; c++) pts25_sq.push({ x: c * 240, y: r * 240 });
             }
             const pts16_sq = [];
             for (let r = 0; r < 4; r++) {
                 for (let c = 0; c < 4; c++) pts16_sq.push({ x: c * 300, y: r * 300 });
             }
+            const pts12_ind = [];
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < 4; c++) pts12_ind.push({ x: c * 300, y: r * 360 });
+            }
+            const pts9_sq = [];
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < 3; c++) pts9_sq.push({ x: c * 400, y: r * 400 });
+            }
+            const pts6_ind = [];
+            for (let r = 0; r < 2; r++) {
+                for (let c = 0; c < 3; c++) pts6_ind.push({ x: c * 400, y: r * 550 });
+            }
             const pts4_sq = [
                 { x: 0, y: 0 },
-                { x: 600, y: 0 },
-                { x: 0, y: 600 },
-                { x: 600, y: 600 }
+                { x: 550, y: 0 },
+                { x: 0, y: 550 },
+                { x: 550, y: 550 }
             ];
 
             return [
-                {
-                    id: 'std_24',
-                    title: 'Диаметр рулона до 200 мм',
-                    subtitle: '24 рулона без смещения',
-                    maxDiam: 200,
-                    rollsCount: 24,
-                    shifted: false,
-                    pallet: '1200x800',
-                    isStandard: true,
-                    points: buildCenteredNormalized(pts24, 200, 1200, 800)
-                },
-                {
-                    id: 'std_18',
-                    title: 'Диаметр рулона до 240 мм',
-                    subtitle: '18 рулонов со смещением',
-                    maxDiam: 240,
-                    rollsCount: 18,
-                    shifted: true,
-                    pallet: '1200x800',
-                    isStandard: true,
-                    points: buildCenteredNormalized(pts18, 240, 1200, 800)
-                },
-                {
-                    id: 'std_11',
-                    title: 'Диаметр рулона до 295 мм',
-                    subtitle: '11 рулонов со смещением',
-                    maxDiam: 295,
-                    rollsCount: 11,
-                    shifted: true,
-                    pallet: '1200x800',
-                    isStandard: true,
-                    points: buildCenteredNormalized(pts11, 295, 1200, 800)
-                },
-                {
-                    id: 'std_8',
-                    title: 'Диаметр рулона до 310 мм',
-                    subtitle: '8 рулонов со смещением',
-                    maxDiam: 310,
-                    rollsCount: 8,
-                    shifted: true,
-                    pallet: '1200x800',
-                    isStandard: true,
-                    points: buildCenteredNormalized(pts8, 310, 1200, 800)
-                },
-                {
-                    id: 'std_7',
-                    title: 'Диаметр рулона до 325 мм',
-                    subtitle: '7 рулонов со смещением',
-                    maxDiam: 325,
-                    rollsCount: 7,
-                    shifted: true,
-                    pallet: '1200x800',
-                    isStandard: true,
-                    points: buildCenteredNormalized(pts7, 325, 1200, 800)
-                },
-                {
-                    id: 'std_6',
-                    title: 'Диаметр рулона до 400 мм',
-                    subtitle: '6 рулонов без смещения',
-                    maxDiam: 400,
-                    rollsCount: 6,
-                    shifted: false,
-                    pallet: '1200x800',
-                    isStandard: true,
-                    points: buildCenteredNormalized(pts6, 400, 1200, 800)
-                },
-                {
-                    id: 'std_4',
-                    title: 'Диаметр рулона до 430 мм',
-                    subtitle: '4 рулона со смещением',
-                    maxDiam: 430,
-                    rollsCount: 4,
-                    shifted: true,
-                    pallet: '1200x800',
-                    isStandard: true,
-                    points: buildCenteredNormalized(pts4, 430, 1200, 800)
-                },
-                {
-                    id: 'std_3',
-                    title: 'Диаметр рулона до 460 мм',
-                    subtitle: '3 рулона со смещением',
-                    maxDiam: 460,
-                    rollsCount: 3,
-                    shifted: true,
-                    pallet: '1200x800',
-                    isStandard: true,
-                    points: buildCenteredNormalized(pts3, 460, 1200, 800)
-                },
-                {
-                    id: 'std_2',
-                    title: 'Диаметр рулона до 600 мм',
-                    subtitle: '2 рулона без смещения',
-                    maxDiam: 600,
-                    rollsCount: 2,
-                    shifted: false,
-                    pallet: '1200x800',
-                    isStandard: true,
-                    points: buildCenteredNormalized(pts2, 600, 1200, 800)
-                },
-                {
-                    id: 'std_1',
-                    title: 'Диаметр рулона до 800 мм',
-                    subtitle: '1 рулон по центру',
-                    maxDiam: 800,
-                    rollsCount: 1,
-                    shifted: false,
-                    pallet: '1200x800',
-                    isStandard: false,
-                    points: buildCenteredNormalized(pts1, 800, 1200, 800)
-                },
-                // Дополнительные схемы для 1200x1200 / 1100x1200
-                {
-                    id: 'sq_16',
-                    title: 'До 300 мм (1200×1200)',
-                    subtitle: '16 рулонов без смещения (4×4)',
-                    maxDiam: 300,
-                    rollsCount: 16,
-                    shifted: false,
-                    pallet: '1200x1200',
-                    isStandard: false,
-                    points: buildCenteredNormalized(pts16_sq, 300, 1200, 1200)
-                },
-                {
-                    id: 'sq_9',
-                    title: 'До 400 мм (1200×1200)',
-                    subtitle: '9 рулонов без смещения (3×3)',
-                    maxDiam: 400,
-                    rollsCount: 9,
-                    shifted: false,
-                    pallet: '1200x1200',
-                    isStandard: false,
-                    points: buildCenteredNormalized(pts9_sq, 400, 1200, 1200)
-                },
-                {
-                    id: 'sq_4',
-                    title: 'До 600 мм (1200×1200)',
-                    subtitle: '4 рулона без смещения (2×2)',
-                    maxDiam: 600,
-                    rollsCount: 4,
-                    shifted: false,
-                    pallet: '1200x1200',
-                    isStandard: false,
-                    points: buildCenteredNormalized(pts4_sq, 600, 1200, 1200)
-                }
+                { id: 'std_24', title: 'Диаметр рулона до 200 мм', subtitle: '24 рулона без смещения', maxDiam: 200, rollsCount: 24, shifted: false, pallet: '1200x800', isStandard: true, points: buildCenteredNormalized(pts24, 200, 1200, 800) },
+                { id: 'std_18', title: 'Диаметр рулона до 240 мм', subtitle: '18 рулонов со смещением', maxDiam: 240, rollsCount: 18, shifted: true, pallet: '1200x800', isStandard: true, points: buildCenteredNormalized(pts18, 240, 1200, 800) },
+                { id: 'std_11', title: 'Диаметр рулона до 295 мм', subtitle: '11 рулонов со смещением', maxDiam: 295, rollsCount: 11, shifted: true, pallet: '1200x800', isStandard: true, points: buildCenteredNormalized(pts11, 295, 1200, 800) },
+                { id: 'std_8',  title: 'Диаметр рулона до 310 мм', subtitle: '8 рулонов со смещением',  maxDiam: 310, rollsCount: 8,  shifted: true,  pallet: '1200x800', isStandard: true, points: buildCenteredNormalized(pts8, 310, 1200, 800) },
+                { id: 'std_7',  title: 'Диаметр рулона до 325 мм', subtitle: '7 рулонов со смещением',  maxDiam: 325, rollsCount: 7,  shifted: true,  pallet: '1200x800', isStandard: true, points: buildCenteredNormalized(pts7, 325, 1200, 800) },
+                { id: 'std_6',  title: 'Диаметр рулона до 400 мм', subtitle: '6 рулонов без смещения',  maxDiam: 400, rollsCount: 6,  shifted: false, pallet: '1200x800', isStandard: true, points: buildCenteredNormalized(pts6, 400, 1200, 800) },
+                { id: 'std_4',  title: 'Диаметр рулона до 430 мм', subtitle: '4 рулона со смещением',   maxDiam: 430, rollsCount: 4,  shifted: true,  pallet: '1200x800', isStandard: true, points: buildCenteredNormalized(pts4, 430, 1200, 800) },
+                { id: 'std_3',  title: 'Диаметр рулона до 460 мм', subtitle: '3 рулона со смещением',   maxDiam: 460, rollsCount: 3,  shifted: true,  pallet: '1200x800', isStandard: true, points: buildCenteredNormalized(pts3, 460, 1200, 800) },
+                { id: 'std_2',  title: 'Диаметр рулона до 600 мм', subtitle: '2 рулона без смещения',   maxDiam: 600, rollsCount: 2,  shifted: false, pallet: '1200x800', isStandard: true, points: buildCenteredNormalized(pts2, 600, 1200, 800) },
+                { id: 'std_1',  title: 'Диаметр рулона до 800 мм', subtitle: '1 рулон по центру',       maxDiam: 800, rollsCount: 1,  shifted: false, pallet: '1200x800', isStandard: false, points: buildCenteredNormalized(pts1, 800, 1200, 800) },
+                { id: 'sq_25',  title: 'До 240 мм (1200×1200)',    subtitle: '25 рулонов (5×5)',        maxDiam: 240, rollsCount: 25, shifted: false, pallet: '1200x1200', isStandard: false, points: buildCenteredNormalized(pts25_sq, 240, 1200, 1200) },
+                { id: 'sq_16',  title: 'До 300 мм (1200×1200)',    subtitle: '16 рулонов (4×4)',        maxDiam: 300, rollsCount: 16, shifted: false, pallet: '1200x1200', isStandard: false, points: buildCenteredNormalized(pts16_sq, 300, 1200, 1200) },
+                { id: 'ind_12', title: 'До 300 мм (1100×1200)',    subtitle: '12 рулонов (4×3)',        maxDiam: 300, rollsCount: 12, shifted: false, pallet: '1100x1200', isStandard: false, points: buildCenteredNormalized(pts12_ind, 300, 1200, 1100) },
+                { id: 'sq_9',   title: 'До 365 мм (1100/1200)',    subtitle: '9 рулонов (3×3)',         maxDiam: 365, rollsCount: 9,  shifted: false, pallet: '1100x1200', isStandard: false, points: buildCenteredNormalized(pts9_sq, 365, 1200, 1100) },
+                { id: 'ind_6',  title: 'До 400 мм (1100×1200)',    subtitle: '6 рулонов (3×2)',         maxDiam: 400, rollsCount: 6,  shifted: false, pallet: '1100x1200', isStandard: false, points: buildCenteredNormalized(pts6_ind, 400, 1200, 1100) },
+                { id: 'sq_4',   title: 'До 550 мм (1100/1200)',    subtitle: '4 рулона (2×2)',         maxDiam: 550, rollsCount: 4,  shifted: false, pallet: '1100x1200', isStandard: false, points: buildCenteredNormalized(pts4_sq, 550, 1200, 1100) }
             ];
         }
 
@@ -1286,44 +1237,44 @@
          * 2. ГЛОБАЛЬНОЕ СОСТОЯНИЕ ПРИЛОЖЕНИЯ
          ***********************************************************************/
         const PALLET_DIMENSIONS = {
-            '1200x800':  { w: 1200, h: 800,  name: '1200 × 800 мм (EUR)' },
-            '1100x1200': { w: 1200, h: 1100, name: '1200 × 1100 мм (Пром)' },
-            '1200x1200': { w: 1200, h: 1200, name: '1200 × 1200 мм (Квадрат)' }
+            '1200x800':  { w: 1200, h: 800,  name: '1200 × 800 мм (EUR)', defaultWeight: 22 },
+            '1100x1200': { w: 1200, h: 1100, name: '1100 × 1200 мм (FIN/IND)', defaultWeight: 25 },
+            '1200x1200': { w: 1200, h: 1200, name: '1200 × 1200 мм (Квадрат)', defaultWeight: 27 }
         };
 
         const state = {
-            rollDiam: 235,          // Внешний диаметр рулона D, мм
-            rollLength: 734.15,     // Точный расчетный или заданный метраж рулона L, пог. м
-            exactLockedLength: null,// Если задан метраж вручную, храним его без потери точности от округления D
-            lockMode: 'length',     // 'length' (менять диаметр при смене толщины) | 'diam' (менять метраж)
-            coreInnerDiam: 76,      // Внутренний диаметр шпули (76 или 152 мм)
-            coreWall: 8,            // Толщина стенки шпули, мм
-            thicknessMicrons: 50,   // Толщина материала (1 слоя), мкм
-            windingLayers: 1,       // Слоев в намотке: 1 (Полотно), 2 (Рукав/Полурукав), 4 (С фальцами)
-            rollWidth: 400,         // Ширина рулона B, мм
-            density: 0.92,          // Плотность г/см³
-            rollGap: 0,             // Зазор между рулонами, мм
-            palletType: '1200x800', // '1200x800' | '1100x1200' | '1200x1200'
-            orientation: 'vertical',// 'vertical' (на торец) | 'horizontal' (горизонтально)
+            rollDiam: 235,
+            rollLength: 734.15,
+            exactLockedLength: null,
+            lockMode: 'length',
+            coreInnerDiam: 76,
+            coreWall: 8,
+            coreDensity: 0.72,
+            thicknessMicrons: 50,
+            windingLayers: 1,
+            rollWidth: 500,
+            density: 0.92,
+            rollGap: 0,
+            palletType: '1200x800',
+            orientation: 'vertical',
             horizAxis: 'along_length',
             horizStackType: 'straight',
-            tiers: 3,               // Количество ярусов
-            palletWoodWeight: 22,   // Вес деревянного поддона, кг
-            maxHeightLimitMm: 1800, // Лимит высоты паллеты, мм
-            maxWeightLimitKg: 850,  // Лимит веса брутто паллеты, кг
-            useInterlayer: true,    // Использовать межъярусные прокладки и упаковку
-            interlayerThickMm: 4,   // Толщина картонной/ДВП прокладки, мм
-            interlayerWeightKg: 0.9,// Вес 1 межъярусного листа, кг
-            stretchWrapWeightKg: 1.2,// Вес стрейч-пленки и уголков на паллету, кг
-            batchOrderValue: 3000,  // Целевой объем заказа (партии)
-            batchOrderUnit: 'kg',   // 'kg' | 'rolls' | 'm' | 'sqm'
+            tiers: 3,
+            palletWoodWeight: 22,
+            maxHeightLimitMm: 1800,
+            maxWeightLimitKg: 1000,
+            useInterlayer: true,
+            interlayerThickMm: 4,
+            interlayerWeightKg: 0.8,
+            stretchWrapWeightKg: 1.5,
+            batchOrderValue: 3000,
+            batchOrderUnit: 'kg',
             activeSchemeId: 'std_18',
             autoSelectScheme: true,
             schemeFilter: 'all',
             schemes: []
         };
 
-        // Load schemes from localStorage + preloaded
         function initSchemes() {
             const base = generatePreloadedSchemes();
             let savedCustom = [];
@@ -1355,9 +1306,6 @@
             const effectivePitch = currentDiam + Math.max(0, gapMm);
             const rMm = currentDiam / 2;
 
-            // Специальная точная геометрия для схемы "3 рулона со смещением" (std_3):
-            // Если 2 крайних рулона раздвинуть по ширине паллеты (допустимо до palletW - D),
-            // то 3-й центральный рулон глубже садится между ними и не свешивается за 800 мм!
             if (scheme.id === 'std_3' && scheme.points.length === 3) {
                 const maxAllowedSpanX = Math.max(effectivePitch, palletW - currentDiam);
                 let halfSpanX = Math.min(
@@ -1370,14 +1318,12 @@
                 if (halfSpanX >= effectivePitch) halfSpanX = effectivePitch * 0.98;
 
                 const triangleHeightY = Math.sqrt(Math.max(0, effectivePitch * effectivePitch - halfSpanX * halfSpanX));
-
                 const rawPts = [
                     { x: -halfSpanX, y: 0 },
                     { x:  halfSpanX, y: 0 },
                     { x:  0,         y: triangleHeightY }
                 ];
 
-                // Центрируем строго по внешнему габариту (Bounding Box), чтобы отступы сверху и снизу были равны!
                 let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
                 for (const p of rawPts) {
                     if (p.x - rMm < minX) minX = p.x - rMm;
@@ -1388,19 +1334,10 @@
                 const offsetX = (palletW - (maxX - minX)) / 2 - minX;
                 const offsetY = (palletH - (maxY - minY)) / 2 - minY;
 
-                return rawPts.map(p => ({
-                    x: p.x + offsetX,
-                    y: p.y + offsetY
-                }));
+                return rawPts.map(p => ({ x: p.x + offsetX, y: p.y + offsetY }));
             }
 
-            // Для всех остальных схем: масштабируем межцентровые расстояния относительно геометрического центра точек,
-            // а затем центрируем всю группу строго по внешнему габариту (Bounding Box) внутри паллеты
-            const refPts = scheme.points.map(p => ({
-                x: p.nx * refPallet.w,
-                y: p.ny * refPallet.h
-            }));
-
+            const refPts = scheme.points.map(p => ({ x: p.nx * refPallet.w, y: p.ny * refPallet.h }));
             let cxRef = 0, cyRef = 0;
             for (const p of refPts) {
                 cxRef += p.x;
@@ -1426,20 +1363,14 @@
             const offsetX = (palletW - (maxX - minX)) / 2 - minX;
             const offsetY = (palletH - (maxY - minY)) / 2 - minY;
 
-            return scaledPts.map(p => ({
-                x: p.x + offsetX,
-                y: p.y + offsetY
-            }));
+            return scaledPts.map(p => ({ x: p.x + offsetX, y: p.y + offsetY }));
         }
 
         function calculateHorizontalLayout(palletW, palletH, rollDiam, rollWidth, axisMode, gapMm = 0) {
-            // При горизонтальной укладке рулон сверху выглядит как прямоугольник:
-            // одна сторона = ширина рулона B, вторая сторона = диаметр D
             const dimX = (axisMode === 'along_length') ? rollWidth : rollDiam;
             const dimY = (axisMode === 'along_length') ? rollDiam : rollWidth;
             const g = Math.max(0, gapMm);
 
-            // Сколько рулонов помещается с учетом зазора g между ними: cols * dimX + (cols - 1) * g <= palletW
             const cols = Math.max(1, Math.floor((palletW + g) / (dimX + g)));
             const rows = Math.max(1, Math.floor((palletH + g) / (dimY + g)));
 
@@ -1468,7 +1399,6 @@
             };
         }
 
-        // Вспомогательная функция: считает точное число рулонов, листов и высоту паллеты для заданного числа ярусов
         function calculatePalletStructureForTiers(tiersCount, D, B, gap) {
             const palletDim = PALLET_DIMENSIONS[state.palletType];
             const palletWoodH = 145;
@@ -1476,6 +1406,7 @@
             let totalRollsOnPallet = 0;
             let sheetsPerPallet = 0;
             let totalHeightMm = palletWoodH;
+            let maxPyramidTiers = 15;
 
             if (state.orientation === 'vertical') {
                 const scheme = state.schemes.find(s => s.id === state.activeSchemeId) || state.schemes[0];
@@ -1494,21 +1425,20 @@
                     const sheetsHeightAddMm = sheetsPerPallet * (state.useInterlayer ? state.interlayerThickMm : 0);
                     totalHeightMm = palletWoodH + tiersCount * D + sheetsHeightAddMm;
                 } else {
-                    // Укладка пирамидой («в люльку») — между ярусами прокладки не кладутся, только 1 базовый лист на поддон
+                    // В пирамиде число ярусов физически не может превышать число рулонов в основании (baseCount)
+                    const baseCount = horiz.rollsAlongDiamSide;
+                    maxPyramidTiers = Math.max(1, baseCount);
+                    const effectiveTiers = Math.min(tiersCount, maxPyramidTiers);
                     const axialRows = (state.horizAxis === 'along_length') ? horiz.cols : horiz.rows;
                     let sumRolls = 0;
-                    let actualTiers = 0;
-                    for (let t = 0; t < tiersCount; t++) {
-                        const countAlongD = Math.max(0, horiz.rollsAlongDiamSide - t);
-                        if (countAlongD > 0) {
-                            sumRolls += countAlongD * axialRows;
-                            actualTiers++;
-                        }
+                    for (let t = 0; t < effectiveTiers; t++) {
+                        const countAlongD = Math.max(0, baseCount - t);
+                        sumRolls += countAlongD * axialRows;
                     }
                     totalRollsOnPallet = sumRolls;
-                    sheetsPerPallet = (state.useInterlayer && actualTiers > 0) ? 1 : 0;
+                    sheetsPerPallet = (state.useInterlayer && effectiveTiers > 0) ? 1 : 0;
                     const baseSheetH = sheetsPerPallet * (state.useInterlayer ? state.interlayerThickMm : 0);
-                    totalHeightMm = palletWoodH + baseSheetH + (actualTiers > 0 ? D + (actualTiers - 1) * D * (Math.sqrt(3) / 2) : 0);
+                    totalHeightMm = palletWoodH + baseSheetH + (effectiveTiers > 0 ? D + (effectiveTiers - 1) * D * (Math.sqrt(3) / 2) : 0);
                 }
             }
 
@@ -1516,28 +1446,27 @@
                 rollsPerTier,
                 totalRollsOnPallet,
                 sheetsPerPallet,
+                maxPyramidTiers,
                 totalHeightMm: Math.round(totalHeightMm)
             };
         }
 
         function calculateAll() {
-            const d_inner = state.coreInnerDiam; // 76 или 152 мм
-            const wall = Math.max(0, state.coreWall); // мм
-            const d_core = d_inner + 2 * wall; // наружный диаметр шпули, мм
-            // Гарантируем, что внешний диаметр рулона D не может быть меньше наружного диаметра шпули
-            const D = Math.max(d_core + 1, state.rollDiam); // мм
-            const h_um = Math.max(0.5, state.thicknessMicrons); // толщина 1 слоя пленки, мкм
-            const layers = Math.max(1, state.windingLayers); // 1, 2 или 4 слоя в витке
-            const effective_h_um = h_um * layers; // суммарная толщина витка в намотке, мкм
-            const B = Math.max(10, state.rollWidth); // мм
-            const rho = Math.max(0.1, state.density); // г/см³
-            const gap = Math.max(0, state.rollGap); // мм
+            const d_inner = state.coreInnerDiam;
+            const wall = Math.max(0, state.coreWall);
+            const d_core = d_inner + 2 * wall;
+            const D = Math.max(d_core + 1, state.rollDiam);
+            const h_um = Math.max(0.5, state.thicknessMicrons);
+            const layers = Math.max(1, state.windingLayers);
+            const effective_h_um = h_um * layers;
+            const B = Math.max(10, state.rollWidth);
+            const rho = Math.max(0.1, state.density);
+            const coreRho = Math.max(0.1, state.coreDensity);
+            const gap = Math.max(0, state.rollGap);
 
-            // 1. Длина намотки в рулоне (пог. м рулона): L = pi * (D^2 - d_core^2) / (4 * effective_h_um)
             let lengthMeters = 0;
             let turnsCount = 0;
             if (state.exactLockedLength !== null && state.exactLockedLength > 0) {
-                // Если метраж был задан напрямую (или через целевой вес), используем его без погрешности округления D
                 lengthMeters = state.exactLockedLength;
                 turnsCount = Math.round(((D - d_core) / 2 * 1000) / effective_h_um);
             } else if (D > d_core) {
@@ -1546,21 +1475,14 @@
             }
             state.rollLength = lengthMeters;
 
-            // 2. Площадь материала в 1 рулоне (м²):
-            // Если рукав/полурукав (2 слоя) или с фальцами (4 слоя), развернутая площадь полотна кратна числу слоев
             const areaSqM = lengthMeters * (B / 1000) * layers;
-
-            // 3. Вес нетто 1 рулона (кг): m_net = S_развернутая * (h_um / 1000) * rho
             const netWeightKg = (areaSqM * h_um * rho) / 1000;
 
-            // 4. Вес картонной шпули (плотность прессованного картона ~ 0.68 г/см³)
             const coreCrossSectionMm2 = (Math.PI / 4) * (d_core * d_core - d_inner * d_inner);
             const coreVolumeCm3 = (coreCrossSectionMm2 * B) / 1000;
-            const coreWeightKg = (coreVolumeCm3 * 0.68) / 1000;
-
+            const coreWeightKg = (coreVolumeCm3 * coreRho) / 1000;
             const grossWeightKg = netWeightKg + coreWeightKg;
 
-            // 5. Параметры паллеты, прокладок и количества рулонов
             const structure = calculatePalletStructureForTiers(state.tiers, D, B, gap);
             const rollsPerTier = structure.rollsPerTier;
             const totalRollsOnPallet = structure.totalRollsOnPallet;
@@ -1595,6 +1517,7 @@
                 rollsPerTier,
                 totalRollsOnPallet,
                 sheetsPerPallet,
+                maxPyramidTiers: structure.maxPyramidTiers,
                 packagingAddWeightKg,
                 totalHeightMm,
                 totalPalletArea,
@@ -1606,7 +1529,7 @@
         }
 
         /***********************************************************************
-         * 4. ОТРИСОВКА ЧЕРТЕЖЕЙ НА CANVAS (ВИД СВЕРХУ И ВИД СБОКУ)
+         * 4. ОТРИСОВКА 2D-ЧЕРТЕЖА ВИДА СВЕРХУ
          ***********************************************************************/
         function drawTopViewCanvas(calc) {
             const canvas = document.getElementById('canvasTopView');
@@ -1633,14 +1556,12 @@
             const ox = (cw - pw) / 2;
             const oy = (ch - ph) / 2;
 
-            // 1. Отрисовка деревянного настила паллеты
             ctx.fillStyle = '#f8fafc';
             ctx.strokeStyle = '#1e3a8a';
             ctx.lineWidth = 2.5;
             ctx.fillRect(ox, oy, pw, ph);
             ctx.strokeRect(ox, oy, pw, ph);
 
-            // Доски паллеты (легкая текстура)
             ctx.fillStyle = 'rgba(203, 213, 225, 0.28)';
             const boards = 5;
             const boardH = ph / (boards * 2 - 1);
@@ -1648,7 +1569,6 @@
                 ctx.fillRect(ox + 2, oy + i * 2 * boardH, pw - 4, boardH);
             }
 
-            // Размерные подписи сторон паллеты
             ctx.fillStyle = '#475569';
             ctx.font = '600 11px JetBrains Mono, monospace';
             ctx.textAlign = 'center';
@@ -1673,20 +1593,18 @@
                 const rPx = rMm * scale;
                 const coreRPx = (calc.d_core / 2) * scale;
 
-                // Проверка попарных пересечений (нахлестов) рулонов друг на друга
                 const overlappingIndices = new Set();
                 const overlapPairs = [];
                 for (let i = 0; i < pts.length; i++) {
                     for (let j = i + 1; j < pts.length; j++) {
                         const dist = Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y);
                         const overlap = calc.D - dist;
-                        // Порог 1.5 мм, чтобы не срабатывало на микро-округлениях касающихся рулонов
                         if (overlap > 1.5) {
                             hasOverlap = true;
                             overlappingIndices.add(i);
                             overlappingIndices.add(j);
                             if (overlap > maxOverlapMm) maxOverlapMm = overlap;
-                            overlapPairs.push({ i, j, overlap: Math.round(overlap) });
+                            overlapPairs.push({ i, j });
                         }
                     }
                 }
@@ -1702,7 +1620,6 @@
                     if (top < minY) minY = top;
                     if (bottom > maxY) maxY = bottom;
 
-                    // Допуск 2 мм на погрешность округления
                     const isOut = (left < -2 || right > palletDim.w + 2 || top < -2 || bottom > palletDim.h + 2);
                     if (isOut) hasOverhang = true;
                     const isColliding = overlappingIndices.has(idx);
@@ -1710,7 +1627,6 @@
                     const cx = ox + pt.x * scale;
                     const cy = oy + pt.y * scale;
 
-                    // Основной круг рулона (красный при нахлесте друг на друга, оранжевый при свесе за край, синий в норме)
                     ctx.beginPath();
                     ctx.arc(cx, cy, Math.max(2, rPx), 0, Math.PI * 2);
                     if (isColliding) {
@@ -1727,7 +1643,6 @@
                     ctx.lineWidth = isColliding ? 2.2 : 1.5;
                     ctx.stroke();
 
-                    // Внутренняя шпуля
                     if (coreRPx > 2.5) {
                         ctx.beginPath();
                         ctx.arc(cx, cy, coreRPx, 0, Math.PI * 2);
@@ -1738,36 +1653,31 @@
                         ctx.stroke();
                     }
 
-                    // Номер рулона
                     if (rPx > 14) {
                         ctx.fillStyle = '#ffffff';
                         ctx.font = '700 10px Inter, sans-serif';
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        ctx.fillText(idx + 1, cx, cy - (coreRPx > 4 ? coreRPx + (rPx - coreRPx)/2 : 0));
+                        ctx.fillText(idx + 1, cx, cy - (coreRPx > 4 ? coreRPx + (rPx - coreRPx) / 2 : 0));
                     }
                 });
 
-                // Отрисовка маркеров нахлеста между пересекающимися рулонами
                 overlapPairs.forEach(pair => {
                     const p1 = pts[pair.i];
                     const p2 = pts[pair.j];
-                    const x1 = ox + p1.x * scale, y1 = oy + p1.y * scale;
-                    const x2 = ox + p2.x * scale, y2 = oy + p2.y * scale;
                     ctx.save();
                     ctx.strokeStyle = '#fecdd3';
                     ctx.lineWidth = 1.5;
                     ctx.setLineDash([3, 3]);
                     ctx.beginPath();
-                    ctx.moveTo(x1, y1);
-                    ctx.lineTo(x2, y2);
+                    ctx.moveTo(ox + p1.x * scale, oy + p1.y * scale);
+                    ctx.lineTo(ox + p2.x * scale, oy + p2.y * scale);
                     ctx.stroke();
                     ctx.restore();
                 });
 
                 occupiedAreaMm2 = pts.length * Math.PI * rMm * rMm;
 
-                // Проверка реального выхода за габариты паллеты или пересечения рулонов
                 const effectiveD = calc.D + state.rollGap;
                 const exceedsSchemeMax = scheme && effectiveD > scheme.maxDiam && hasOverhang;
                 const banner = document.getElementById('overhangWarningBanner');
@@ -1787,7 +1697,6 @@
                     banner.classList.add('hidden');
                 }
             } else {
-                // Горизонтальная укладка (прямоугольники сверху)
                 const horiz = calculateHorizontalLayout(palletDim.w, palletDim.h, calc.D, state.rollWidth, state.horizAxis, state.rollGap);
                 const banner = document.getElementById('overhangWarningBanner');
                 const bannerText = document.getElementById('overhangWarningText');
@@ -1839,7 +1748,6 @@
 
             ctx.restore();
 
-            // Обновление процентов заполнения и габарита группы
             const palletAreaMm2 = palletDim.w * palletDim.h;
             const fillPct = Math.min(100, (occupiedAreaMm2 / palletAreaMm2) * 100);
             document.getElementById('lblPackingDensity').textContent = `Заполнение площади: ${fillPct.toFixed(1)}%`;
@@ -1861,10 +1769,10 @@
             isDragging: false,
             prevX: 0,
             prevY: 0,
-            theta: Math.PI / 4,     // горизонтальный угол вращения
-            phi: Math.PI / 3.1,     // вертикальный угол наклона
-            radius: 2300,           // дистанция камеры в мм
-            targetY: 500            // высота точки прицеливания камеры
+            theta: Math.PI / 4,
+            phi: Math.PI / 3.1,
+            radius: 2300,
+            targetY: 500
         };
 
         function init3DViewer() {
@@ -1876,19 +1784,13 @@
             const h = container.clientHeight || 230;
 
             const scene = new THREE.Scene();
-
             const camera = new THREE.PerspectiveCamera(38, w / h, 10, 15000);
-
             const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(w, h);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-            renderer.shadowMap.enabled = true;
             container.appendChild(renderer.domElement);
 
-            // Освещение
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.72);
-            scene.add(ambientLight);
-
+            scene.add(new THREE.AmbientLight(0xffffff, 0.72));
             const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.65);
             dirLight1.position.set(1800, 3200, 2200);
             scene.add(dirLight1);
@@ -1897,11 +1799,9 @@
             dirLight2.position.set(-1800, 1200, -1600);
             scene.add(dirLight2);
 
-            // Группа для паллеты и рулонов
             const palletGroup = new THREE.Group();
             scene.add(palletGroup);
 
-            // Напольная сетка для ощущения масштаба
             const gridHelper = new THREE.GridHelper(2400, 12, 0xcbd5e1, 0xe2e8f0);
             gridHelper.position.y = -2;
             scene.add(gridHelper);
@@ -1912,7 +1812,6 @@
             threeCtx.palletGroup = palletGroup;
             threeCtx.initialized = true;
 
-            // Обработчики вращения мышью и пальцем (Orbit)
             const domEl = renderer.domElement;
 
             domEl.addEventListener('mousedown', (e) => {
@@ -1939,7 +1838,6 @@
                 threeCtx.isDragging = false;
             });
 
-            // Сенсорное управление на мобильных устройствах
             domEl.addEventListener('touchstart', (e) => {
                 if (e.touches.length === 1) {
                     threeCtx.isDragging = true;
@@ -1965,10 +1863,9 @@
                 threeCtx.isDragging = false;
             });
 
-            // Зум колесиком мыши
             domEl.addEventListener('wheel', (e) => {
                 e.preventDefault();
-                threeCtx.radius = Math.max(900, Math.min(5000, threeCtx.radius + e.deltaY * 1.4));
+                threeCtx.radius = Math.max(900, Math.min(6000, threeCtx.radius + e.deltaY * 1.4));
                 update3DCameraPosition();
                 render3DScene();
             }, { passive: false });
@@ -2009,47 +1906,37 @@
             threeCtx.renderer.render(threeCtx.scene, threeCtx.camera);
         }
 
-        // Создает 3D-цилиндр рулона со шпулей и контурными гранями
         function create3DRollMesh(outerDiam, coreDiam, rollLength, isOverhang, tierIdx) {
             const group = new THREE.Group();
             const rOuter = Math.max(20, outerDiam / 2);
             const rCore = Math.min(rOuter - 4, Math.max(10, coreDiam / 2));
 
-            // Основное тело рулона
             const bodyGeo = new THREE.CylinderGeometry(rOuter, rOuter, rollLength, 32);
             const baseColor = isOverhang
                 ? 0xf59e0b
                 : (tierIdx % 2 === 0 ? 0x3b6fc4 : 0x2563eb);
             const bodyMat = new THREE.MeshLambertMaterial({ color: baseColor });
-            const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
-            group.add(bodyMesh);
+            group.add(new THREE.Mesh(bodyGeo, bodyMat));
 
-            // Торцевые картонные шпули (чуть выступают на 1.5 мм, чтобы четко читаться)
             const coreGeo = new THREE.CylinderGeometry(rCore, rCore, rollLength + 3, 24);
             const coreMat = new THREE.MeshLambertMaterial({ color: 0xe2e8f0 });
-            const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-            group.add(coreMesh);
+            group.add(new THREE.Mesh(coreGeo, coreMat));
 
-            // Внутреннее темное отверстие гильзы
             const holeGeo = new THREE.CylinderGeometry(rCore * 0.78, rCore * 0.78, rollLength + 5, 20);
             const holeMat = new THREE.MeshBasicMaterial({ color: 0x334155 });
-            const holeMesh = new THREE.Mesh(holeGeo, holeMat);
-            group.add(holeMesh);
+            group.add(new THREE.Mesh(holeGeo, holeMat));
 
-            // Четкий контур кромок рулона, чтобы ярусы и соседние рулоны хорошо различались
             const edgesGeo = new THREE.EdgesGeometry(bodyGeo, 25);
             const edgesMat = new THREE.LineBasicMaterial({
                 color: isOverhang ? 0x92400e : 0x1e3a8a,
                 transparent: true,
                 opacity: 0.55
             });
-            const edgesLine = new THREE.LineSegments(edgesGeo, edgesMat);
-            group.add(edgesLine);
+            group.add(new THREE.LineSegments(edgesGeo, edgesMat));
 
             return group;
         }
 
-        // Рекурсивное освобождение памяти WebGL (геометрии и материалов) при перестроении 3D-сцены
         function disposeObject3D(obj) {
             if (!obj) return;
             if (obj.children && obj.children.length > 0) {
@@ -2057,9 +1944,7 @@
                     disposeObject3D(obj.children[i]);
                 }
             }
-            if (obj.geometry) {
-                obj.geometry.dispose();
-            }
+            if (obj.geometry) obj.geometry.dispose();
             if (obj.material) {
                 if (Array.isArray(obj.material)) {
                     obj.material.forEach(m => m && m.dispose && m.dispose());
@@ -2082,7 +1967,6 @@
                 threeCtx.camera.updateProjectionMatrix();
             }
 
-            // Очищаем предыдущие меши из группы с освобождением GPU-памяти
             const group = threeCtx.palletGroup;
             while (group.children.length > 0) {
                 const child = group.children[0];
@@ -2091,16 +1975,14 @@
             }
 
             const palletDim = PALLET_DIMENSIONS[state.palletType];
-            const pW = palletDim.w; // вдоль оси X
-            const pH = palletDim.h; // вдоль оси Z
+            const pW = palletDim.w;
+            const pH = palletDim.h;
             const palletWoodH = 145;
 
-            // 1. Строим реалистичный деревянный 3D-поддон (основание от Y = 0 до Y = 145)
             const woodMat = new THREE.MeshLambertMaterial({ color: 0xd97706 });
             const woodDarkMat = new THREE.MeshLambertMaterial({ color: 0xb45309 });
             const woodEdgeMat = new THREE.LineBasicMaterial({ color: 0x78350f, transparent: true, opacity: 0.4 });
 
-            // Верхний настил (5 досок вдоль X)
             const topBoardH = 22;
             const numBoards = 5;
             const boardDepth = (pH * 0.72) / numBoards;
@@ -2117,7 +1999,6 @@
                 group.add(bEdges);
             }
 
-            // Опорные шашки и нижние лыжи поддона
             const blockH = palletWoodH - topBoardH;
             const skiPositionsZ = [-pH / 2 + 50, 0, pH / 2 - 50];
             skiPositionsZ.forEach(zPos => {
@@ -2127,9 +2008,7 @@
                 group.add(skiMesh);
             });
 
-            // 2. Размещаем 3D-рулоны согласно выбранной схеме и ориентации
             if (state.orientation === 'vertical') {
-                // Укладка НА ТОРЕЦ (вертикальные цилиндры в точных координатах схемы)
                 const scheme = state.schemes.find(s => s.id === state.activeSchemeId) || state.schemes[0];
                 const pts = getActualRollPositionsMm(scheme, pW, pH, calc.D, state.rollGap);
                 const rMm = calc.D / 2;
@@ -2139,7 +2018,6 @@
 
                 for (let t = 0; t < state.tiers; t++) {
                     const sheetCenterY = palletWoodH + t * (rollH + sheetH) + sheetH / 2;
-                    // Отрисовка картонного межъярусного листа
                     if (sheetH > 0) {
                         const sGeo = new THREE.BoxGeometry(pW - 10, Math.max(3, sheetH), pH - 10);
                         const sMesh = new THREE.Mesh(sGeo, sheetMat);
@@ -2158,13 +2036,11 @@
                         );
 
                         const rollMesh = create3DRollMesh(calc.D, calc.d_core, rollH, isOut, t);
-                        // Переводим координаты 2D плана (0..pW, 0..pH) в 3D центр паллеты (-pW/2..+pW/2)
                         rollMesh.position.set(pt.x - pW / 2, centerY, pt.y - pH / 2);
                         group.add(rollMesh);
                     });
                 }
             } else {
-                // ГОРИЗОНТАЛЬНАЯ укладка (цилиндры лежат на боку рядами или пирамидой «в люльку»)
                 const horiz = calculateHorizontalLayout(pW, pH, calc.D, state.rollWidth, state.horizAxis, state.rollGap);
                 const rMm = calc.D / 2;
                 const rollLen = state.rollWidth;
@@ -2176,6 +2052,7 @@
 
                 const axialCount = isAlongLength ? horiz.cols : horiz.rows;
                 const baseDiamCount = isAlongLength ? horiz.rows : horiz.cols;
+                const effectiveTiers = isPyramid ? Math.min(state.tiers, baseDiamCount) : state.tiers;
 
                 const totalAxialSpan = axialCount * rollLen + (axialCount - 1) * g;
                 const startAxial = -totalAxialSpan / 2 + rollLen / 2;
@@ -2184,7 +2061,6 @@
                 const totalBaseDiamSpan = baseDiamCount * calc.D + (baseDiamCount - 1) * g;
                 const startBaseDiam = -totalBaseDiamSpan / 2 + rMm;
 
-                // Базовый лист на поддоне для пирамиды
                 if (isPyramid && sheetH > 0) {
                     const sGeo = new THREE.BoxGeometry(pW - 10, Math.max(3, sheetH), pH - 10);
                     const sMesh = new THREE.Mesh(sGeo, sheetMat);
@@ -2192,7 +2068,7 @@
                     group.add(sMesh);
                 }
 
-                for (let t = 0; t < state.tiers; t++) {
+                for (let t = 0; t < effectiveTiers; t++) {
                     const countAlongD = isPyramid ? Math.max(0, baseDiamCount - t) : baseDiamCount;
                     if (countAlongD <= 0) break;
 
@@ -2228,11 +2104,9 @@
                             const rollMesh = create3DRollMesh(calc.D, calc.d_core, rollLen, isOut, t);
 
                             if (isAlongLength) {
-                                // Ось рулона вдоль X (длинной стороны паллеты)
                                 rollMesh.rotation.z = Math.PI / 2;
                                 rollMesh.position.set(xPos, centerY, zPos);
                             } else {
-                                // Ось рулона вдоль Z (ширины паллеты)
                                 rollMesh.rotation.x = Math.PI / 2;
                                 rollMesh.position.set(xPos, centerY, zPos);
                             }
@@ -2242,13 +2116,16 @@
                 }
             }
 
-            // Подстраиваем центр камеры под текущую высоту паллеты с грузом
-            threeCtx.targetY = Math.min(1200, Math.max(280, calc.totalHeightMm * 0.45));
+            // Автоматическая подстройка камеры под высоту и габарит паллеты
+            threeCtx.targetY = Math.min(1400, Math.max(280, calc.totalHeightMm * 0.45));
+            const recommendedRadius = Math.max(2200, calc.totalHeightMm * 1.45, Math.max(pW, pH) * 1.85);
+            if (!threeCtx.isDragging) {
+                threeCtx.radius = Math.min(5000, recommendedRadius);
+            }
             update3DCameraPosition();
             render3DScene();
         }
 
-        // Генерация SVG-иконки карточки точно в стиле прикрепленного фото
         function generateSchemeCardSVG(scheme) {
             const refPallet = PALLET_DIMENSIONS[scheme.pallet || '1200x800'] || { w: 1200, h: 800 };
             const vw = 210;
@@ -2336,18 +2213,15 @@
         /***********************************************************************
          * 5. ОБНОВЛЕНИЕ ИНТЕРФЕЙСА И АВТОПОДБОР СХЕМЫ
          ***********************************************************************/
-        // Проверяет, помещаются ли все рулоны схемы в границы текущей паллеты БЕЗ свесов и БЕЗ взаимных пересечений (нахлестов)
         function doesSchemeFitPallet(scheme, palletW, palletH, rollDiam, gapMm) {
             const effectiveD = rollDiam + Math.max(0, gapMm);
-            // Для адаптивной схемы из 3 рулонов со смещением геометрический предел на паллете 1200x800 выше (до ~482 мм)
             const allowedMaxD = (scheme.id === 'std_3') ? Math.max(scheme.maxDiam, 482) : scheme.maxDiam;
-            if (effectiveD > allowedMaxD) return false;
+            if (effectiveD > allowedMaxD + 0.5) return false;
 
             const pts = getActualRollPositionsMm(scheme, palletW, palletH, rollDiam, gapMm);
             const rMm = rollDiam / 2;
-            const tolerance = 2.5; // допуск 2.5 мм на округление
+            const tolerance = 2.5;
 
-            // 1. Проверка выхода за борта паллеты
             for (const pt of pts) {
                 if (
                     pt.x - rMm < -tolerance ||
@@ -2359,7 +2233,6 @@
                 }
             }
 
-            // 2. Проверка попарных пересечений (нахлестов) рулонов друг с другом
             for (let i = 0; i < pts.length; i++) {
                 for (let j = i + 1; j < pts.length; j++) {
                     const dist = Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y);
@@ -2376,14 +2249,11 @@
             const palletDim = PALLET_DIMENSIONS[state.palletType];
             const effectiveD = state.rollDiam + Math.max(0, state.rollGap);
 
-            // 1. Ищем схемы, которые полностью помещаются на текущую паллету без свесов и подходят по maxDiam
             let fittingCandidates = state.schemes.filter(s =>
                 doesSchemeFitPallet(s, palletDim.w, palletDim.h, state.rollDiam, state.rollGap)
             );
 
             if (fittingCandidates.length) {
-                // Выбираем схему с максимальным количеством рулонов,
-                // а при равном количестве — ту, которая предназначена для выбранного типа паллеты и ближе по maxDiam
                 fittingCandidates.sort((a, b) => {
                     if (b.points.length !== a.points.length) return b.points.length - a.points.length;
                     const aSamePallet = (a.pallet === state.palletType) ? 1 : 0;
@@ -2393,7 +2263,6 @@
                 });
                 state.activeSchemeId = fittingCandidates[0].id;
             } else {
-                // 2. Запасной вариант: если ни одна схема не прошла геометрический тест, берем подходящую по maxDiam
                 let byDiam = state.schemes.filter(s => s.maxDiam >= effectiveD);
                 if (byDiam.length) {
                     byDiam.sort((a, b) => b.points.length - a.points.length || a.maxDiam - b.maxDiam);
@@ -2409,19 +2278,23 @@
             if (chk) chk.checked = true;
         }
 
-        // Вызывается напрямую при клике на кнопку «Подобрать оптимальную» в желтом баннере
         function triggerOptimalScheme() {
+            if (state.orientation !== 'vertical') {
+                selectOrientation('vertical');
+            }
             autoSelectBestScheme();
             updateUI();
         }
 
-        // Расчет максимально допустимого числа ярусов по высоте и весу паллеты (учитывает и вертикальную, и пирамидальную укладку)
         function computeMaxAllowedTiers(calc) {
             let bestTiers = 1;
             const wrapW = state.useInterlayer ? state.stretchWrapWeightKg : 0;
             const sheetW = state.useInterlayer ? state.interlayerWeightKg : 0;
+            const upperLimit = (state.orientation === 'horizontal' && state.horizStackType === 'pyramid')
+                ? calc.maxPyramidTiers
+                : 15;
 
-            for (let t = 1; t <= 15; t++) {
+            for (let t = 1; t <= upperLimit; t++) {
                 const st = calculatePalletStructureForTiers(t, calc.D, calc.B, state.rollGap);
                 if (st.totalRollsOnPallet <= 0) break;
                 const grossW = st.totalRollsOnPallet * calc.grossWeightKg
@@ -2452,7 +2325,6 @@
             let totalRollsNeeded = 0;
             if (calc.netWeightKg > 0 && calc.lengthMeters > 0 && calc.areaSqM > 0) {
                 if (unit === 'kg') {
-                    // Используем -1e-9 чтобы избежать ошибки округления float (например 3000 / 15.0000000001 = 200.0000001 -> 201)
                     totalRollsNeeded = Math.ceil((targetVal / calc.netWeightKg) - 1e-9);
                 } else if (unit === 'rolls') {
                     totalRollsNeeded = Math.ceil(targetVal);
@@ -2471,7 +2343,6 @@
             const actualNetKg = totalRollsNeeded * calc.netWeightKg;
             const actualLengthM = totalRollsNeeded * calc.lengthMeters;
 
-            // Точный расчет последней паллеты (учитывает в т.ч. пирамидальную укладку, где ярусы разного размера)
             let lastPalletRolls = remainderRolls === 0 ? (totalRollsNeeded > 0 ? rollsPerPallet : 0) : remainderRolls;
             let lastPalletTiers = 0;
             let lastPalletSheets = 0;
@@ -2533,28 +2404,49 @@
                 autoSelectBestScheme();
             }
 
-            const calc = calculateAll();
+            let calc = calculateAll();
 
-            // Синхронизация поля ввода метража (если пользователь сейчас не печатает в самом поле метража)
+            // Если включена пирамида, ограничиваем state.tiers физическим максимумом основания
+            const pyramidHintEl = document.getElementById('pyramidLimitHint');
+            if (state.orientation === 'horizontal' && state.horizStackType === 'pyramid') {
+                if (pyramidHintEl) {
+                    pyramidHintEl.classList.remove('hidden');
+                    document.getElementById('lblMaxPyramidTiers').textContent = calc.maxPyramidTiers;
+                }
+                if (state.tiers > calc.maxPyramidTiers) {
+                    state.tiers = calc.maxPyramidTiers;
+                    document.getElementById('inputTiers').value = state.tiers;
+                    calc = calculateAll();
+                }
+            } else if (pyramidHintEl) {
+                pyramidHintEl.classList.add('hidden');
+            }
+
             const inputRollLengthEl = document.getElementById('inputRollLength');
             if (!skipLengthInputSync && inputRollLengthEl && document.activeElement !== inputRollLengthEl) {
                 inputRollLengthEl.value = Math.round(calc.lengthMeters * 10) / 10;
             }
 
-            // Синхронизация поля целевого веса 1 рулона нетто
             const inputTargetNetWeightEl = document.getElementById('inputTargetNetWeight');
             if (!skipWeightInputSync && inputTargetNetWeightEl && document.activeElement !== inputTargetNetWeightEl) {
                 inputTargetNetWeightEl.value = calc.netWeightKg.toFixed(2);
             }
 
-            // Синхронизация поля внешнего диаметра (если диаметр вырос из-за увеличения толщины шпули)
             const inputRollDiamEl = document.getElementById('inputRollDiam');
             if (inputRollDiamEl && document.activeElement !== inputRollDiamEl) {
                 inputRollDiamEl.value = calc.D;
             }
 
-            // Обновление текста наружного диаметра шпули и эффективной толщины витка
+            const sliderRollDiamEl = document.getElementById('sliderRollDiam');
+            if (sliderRollDiamEl && document.activeElement !== sliderRollDiamEl) {
+                sliderRollDiamEl.value = Math.min(DIAM_SLIDER_MAX, Math.max(DIAM_SLIDER_MIN, Math.round(calc.D)));
+            }
+            updateDiameterSliderVisual(calc.D);
+
             document.getElementById('lblCoreOuterDiam').textContent = `${calc.d_core} мм`;
+            const singleCoreEl = document.getElementById('lblSingleCoreWeight');
+            if (singleCoreEl) singleCoreEl.textContent = `${calc.coreWeightKg.toFixed(2)} кг`;
+
             const effThickEl = document.getElementById('lblEffectiveThickness');
             if (effThickEl) {
                 effThickEl.textContent = calc.layers > 1
@@ -2562,7 +2454,6 @@
                     : `В витке: ${calc.h_um} мкм`;
             }
 
-            // Верхние карточки KPI
             document.getElementById('resRollArea').textContent = calc.areaSqM.toFixed(1);
             const layerBadge = calc.layers > 1 ? ` ×${calc.layers}сл` : '';
             document.getElementById('resRollSpecSub').textContent = `${state.rollWidth}мм × ${state.thicknessMicrons}мкм${layerBadge}`;
@@ -2570,20 +2461,21 @@
             document.getElementById('resRollLength').textContent = Math.round(calc.lengthMeters).toLocaleString('ru-RU');
             document.getElementById('resRollTurns').textContent = `${calc.turnsCount.toLocaleString('ru-RU')} вит.`;
 
+            document.getElementById('resRollNetWeightMain').textContent = calc.netWeightKg.toFixed(2);
             document.getElementById('resRollGrossWeight').textContent = calc.grossWeightKg.toFixed(2);
-            document.getElementById('resRollNetAndCore').textContent = `${calc.netWeightKg.toFixed(2)} / ${calc.coreWeightKg.toFixed(2)} кг`;
+            document.getElementById('resRollCoreSub').textContent = `${calc.coreWeightKg.toFixed(2)} кг`;
 
             document.getElementById('resTotalRolls').textContent = calc.totalRollsOnPallet;
-            document.getElementById('resRollsBreakdown').textContent = `${calc.rollsPerTier} шт × ${state.tiers} яр.`;
+            document.getElementById('resRollsBreakdown').textContent = (state.orientation === 'horizontal' && state.horizStackType === 'pyramid')
+                ? `пирамида ${state.tiers} яр.`
+                : `${calc.rollsPerTier} шт × ${state.tiers} яр.`;
 
             document.getElementById('resPalletGrossWeight').textContent = Math.round(calc.totalPalletGrossWeight).toLocaleString('ru-RU');
-            document.getElementById('resPalletTotalArea').textContent = `${Math.round(calc.totalPalletArea).toLocaleString('ru-RU')} м² | ${Math.round(calc.totalPalletLength).toLocaleString('ru-RU')} м`;
+            document.getElementById('resPalletTotalArea').textContent = `${Math.round(calc.totalPalletArea).toLocaleString('ru-RU')} м²`;
 
-            // Индикация прокладок и упаковки
             document.getElementById('lblSheetsPerPallet').textContent = `${calc.sheetsPerPallet} шт`;
             document.getElementById('lblPackagingTotalAdd').textContent = `+${calc.packagingAddWeightKg.toFixed(1)} кг`;
 
-            // Проверка лимитов высоты и веса паллеты
             const isHeightOver = calc.totalHeightMm > state.maxHeightLimitMm;
             const isWeightOver = calc.totalPalletGrossWeight > state.maxWeightLimitKg;
             const maxAllowedTiers = computeMaxAllowedTiers(calc);
@@ -2603,7 +2495,6 @@
             }
             limitsHint.textContent = `Макс: ${maxAllowedTiers} яр.`;
 
-            // Детализация
             document.getElementById('detTotalArea').textContent = `${calc.totalPalletArea.toFixed(1)} м²`;
             document.getElementById('detTotalLength').textContent = `${Math.round(calc.totalPalletLength).toLocaleString('ru-RU')} пог. м`;
             document.getElementById('detPalletNetWeight').textContent = `${calc.totalPalletNetWeight.toFixed(1)} кг`;
@@ -2629,7 +2520,6 @@
         /***********************************************************************
          * 6. ОБРАБОТЧИКИ СОБЫТИЙ И ПЕРЕКЛЮЧАТЕЛИ
          ***********************************************************************/
-        // Обратный расчет внешнего диаметра рулона D (мм) из заданного метража L (пог. м)
         function setLengthAndRecalcDiam(lengthMetersVal, skipLengthInputSync = false, skipWeightInputSync = false) {
             const L = Math.max(0.5, lengthMetersVal);
             state.exactLockedLength = L;
@@ -2638,20 +2528,18 @@
             const d_core = state.coreInnerDiam + 2 * Math.max(0, state.coreWall);
             const effective_h_um = Math.max(0.5, state.thicknessMicrons) * Math.max(1, state.windingLayers);
 
-            // Формула: D = sqrt( (4 * effective_h_um * L) / pi + d_core^2 )
             const newD = Math.sqrt((4 * effective_h_um * L) / Math.PI + d_core * d_core);
             const preciseD = Math.min(1200, Math.max(d_core + 1, Math.round(newD * 10) / 10));
 
             state.rollDiam = preciseD;
             document.getElementById('inputRollDiam').value = preciseD;
-            document.getElementById('sliderRollDiam').value = Math.min(800, Math.max(100, Math.round(preciseD)));
+            document.getElementById('sliderRollDiam').value = Math.min(DIAM_SLIDER_MAX, Math.max(DIAM_SLIDER_MIN, Math.round(preciseD)));
             if (!skipLengthInputSync) {
                 document.getElementById('inputRollLength').value = Math.round(L * 10) / 10;
             }
             updateUI(skipLengthInputSync, skipWeightInputSync);
         }
 
-        // Обратный расчет метража и диаметра D из желаемого чистого веса 1 рулона (кг нетто)
         function setNetWeightAndRecalc(targetNetKg) {
             const m_net = Math.max(0.05, targetNetKg);
             const h_um = Math.max(0.5, state.thicknessMicrons);
@@ -2659,7 +2547,6 @@
             const B = Math.max(10, state.rollWidth);
             const rho = Math.max(0.1, state.density);
 
-            // m_net = (L * (B/1000) * layers * h_um * rho) / 1000  =>  L = (m_net * 1e6) / (B * layers * h_um * rho)
             const requiredLengthM = (m_net * 1000000) / (B * layers * h_um * rho);
             setLengthAndRecalcDiam(requiredLengthM, false, true);
         }
@@ -2723,7 +2610,7 @@
             state.exactLockedLength = null;
             state.rollDiam = val;
             document.getElementById('inputRollDiam').value = val;
-            document.getElementById('sliderRollDiam').value = val;
+            document.getElementById('sliderRollDiam').value = Math.min(DIAM_SLIDER_MAX, Math.max(DIAM_SLIDER_MIN, val));
             updateUI();
         }
 
@@ -2747,11 +2634,10 @@
 
         function selectCore(innerMm) {
             state.coreInnerDiam = innerMm;
-            // При переключении на 152 мм обычно стенка шпули 10-12 мм
             if (innerMm === 152 && state.coreWall === 8) {
-                state.coreWall = 10;
-                document.getElementById('inputCoreWall').value = 10;
-            } else if (innerMm === 76 && state.coreWall === 10) {
+                state.coreWall = 12;
+                document.getElementById('inputCoreWall').value = 12;
+            } else if (innerMm === 76 && state.coreWall === 12) {
                 state.coreWall = 8;
                 document.getElementById('inputCoreWall').value = 8;
             }
@@ -2777,6 +2663,11 @@
 
         function selectPallet(palletKey) {
             state.palletType = palletKey;
+            const pInfo = PALLET_DIMENSIONS[palletKey];
+            if (pInfo && pInfo.defaultWeight) {
+                state.palletWoodWeight = pInfo.defaultWeight;
+                document.getElementById('inputPalletWeight').value = pInfo.defaultWeight;
+            }
             ['1200x800', '1100x1200', '1200x1200'].forEach(k => {
                 const btn = document.getElementById('btnPallet_' + k);
                 if (k === palletKey) {
@@ -2848,17 +2739,17 @@
         }
 
         /***********************************************************************
-         * 7. ИНТЕРАКТИВНЫЙ КОНСТРУКТОР СВОИХ СХЕМ УКЛАДКИ (МОДАЛЬНОЕ ОКНО)
+         * 7. ИНТЕРАКТИВНЫЙ КОНСТРУКТОР СВОИХ СХЕМ УКЛАДКИ
          ***********************************************************************/
-        let modalPointsMm = []; // массив {x, y} в мм на выбранной паллете
+        let modalPointsMm = [];
         let draggingPointIdx = -1;
         let selectedModalPointIdx = 0;
-        let activeSnapGuides = []; // активные линии прилипания для отрисовки { type: 'x'|'y'|'roll', val, x1,y1,x2,y2 }
+        let activeSnapGuides = [];
 
         const modalSnapSettings = {
-            snapToEdges: true,     // прилипать к бортам и центральным осям паллеты
-            snapToRolls: true,     // прилипать вплотную к соседним рулонам
-            clampInside: false     // жестко удерживать внутри границ паллеты
+            snapToEdges: true,
+            snapToRolls: true,
+            clampInside: false
         };
 
         function updateModalSnapSettings() {
@@ -2978,26 +2869,20 @@
 
             if (pattern === 'grid') {
                 rowCounts.forEach((cnt, rIdx) => {
-                    for (let c = 0; c < cnt; c++) {
-                        pts.push({ x: c * maxD, y: rIdx * maxD });
-                    }
+                    for (let c = 0; c < cnt; c++) pts.push({ x: c * maxD, y: rIdx * maxD });
                 });
             } else if (pattern === 'staggered') {
                 const maxCols = Math.max(...rowCounts);
                 rowCounts.forEach((cnt, rIdx) => {
                     const xOffset = ((maxCols - cnt) * maxD) / 2;
-                    for (let c = 0; c < cnt; c++) {
-                        pts.push({ x: xOffset + c * maxD, y: rIdx * maxD * s3 });
-                    }
+                    for (let c = 0; c < cnt; c++) pts.push({ x: xOffset + c * maxD, y: rIdx * maxD * s3 });
                 });
             } else if (pattern === 'wave') {
                 const cols = rowCounts[0] || 4;
                 const rows = rowCounts.length;
                 for (let c = 0; c < cols; c++) {
                     const yShift = (c % 2 === 1) ? maxD * 0.32 : 0;
-                    for (let rw = 0; rw < rows; rw++) {
-                        pts.push({ x: c * (maxD * 0.92), y: rw * maxD + yShift });
-                    }
+                    for (let rw = 0; rw < rows; rw++) pts.push({ x: c * (maxD * 0.92), y: rw * maxD + yShift });
                 }
             } else {
                 return;
@@ -3022,10 +2907,10 @@
 
             let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
             modalPointsMm.forEach(p => {
-                if (p.x - maxD/2 < minX) minX = p.x - maxD/2;
-                if (p.x + maxD/2 > maxX) maxX = p.x + maxD/2;
-                if (p.y - maxD/2 < minY) minY = p.y - maxD/2;
-                if (p.y + maxD/2 > maxY) maxY = p.y + maxD/2;
+                if (p.x - maxD / 2 < minX) minX = p.x - maxD / 2;
+                if (p.x + maxD / 2 > maxX) maxX = p.x + maxD / 2;
+                if (p.y - maxD / 2 < minY) minY = p.y - maxD / 2;
+                if (p.y + maxD / 2 > maxY) maxY = p.y + maxD / 2;
             });
 
             const dx = (pDim.w - (maxX - minX)) / 2 - minX;
@@ -3035,7 +2920,6 @@
             drawModalEditorCanvas();
         }
 
-        // Прижимает внешние рулоны к краям паллеты (распределяя крайние к бортам поддона)
         function snapAllModalRollsToEdges() {
             if (!modalPointsMm.length) return;
             const palletKey = document.getElementById('modalPalletType').value;
@@ -3068,7 +2952,6 @@
             drawModalEditorCanvas();
         }
 
-        // Автоматическое раздвижение пересекающихся рулонов (итерационная релаксация)
         function resolveModalCollisions() {
             if (modalPointsMm.length < 2) return;
             const palletKey = document.getElementById('modalPalletType').value;
@@ -3100,7 +2983,6 @@
                         }
                     }
                 }
-                // Если включено удержание в границах паллеты — поджимаем к бортам
                 if (modalSnapSettings.clampInside || modalSnapSettings.snapToEdges) {
                     modalPointsMm.forEach(p => {
                         p.x = Math.max(r, Math.min(pDim.w - r, p.x));
@@ -3119,7 +3001,6 @@
             const maxD = Math.max(80, parseFloat(document.getElementById('modalMaxDiam').value) || 250);
             const r = maxD / 2;
 
-            // Если включено прилипание к краям, пробуем поставить в свободный угол или центр
             const candidateSpots = [
                 { x: pDim.w / 2, y: pDim.h / 2 },
                 { x: r, y: r },
@@ -3195,54 +3076,42 @@
             drawModalEditorCanvas();
         }
 
-        // Вычисляет координаты рулона с учетом магнитов к краям паллеты и соседним рулонам
         function applyModalSnapping(rawX, rawY, movingIdx) {
             const palletKey = document.getElementById('modalPalletType').value;
             const pDim = PALLET_DIMENSIONS[palletKey];
             const maxD = Math.max(80, parseFloat(document.getElementById('modalMaxDiam').value) || 250);
             const r = maxD / 2;
-            const snapThresholdMm = 26; // радиус срабатывания магнита в мм
+            const snapThresholdMm = 26;
 
             let x = rawX;
             let y = rawY;
             activeSnapGuides = [];
 
-            // 1. Прилипание к бортам паллеты и центральным осям
             if (modalSnapSettings.snapToEdges) {
-                const snapCandidatesX = [
-                    { val: r, label: 'Левый край' },
-                    { val: pDim.w - r, label: 'Правый край' },
-                    { val: pDim.w / 2, label: 'Центр X' }
-                ];
-                const snapCandidatesY = [
-                    { val: r, label: 'Верхний край' },
-                    { val: pDim.h - r, label: 'Нижний край' },
-                    { val: pDim.h / 2, label: 'Центр Y' }
-                ];
+                const snapCandidatesX = [r, pDim.w - r, pDim.w / 2];
+                const snapCandidatesY = [r, pDim.h - r, pDim.h / 2];
 
-                for (const cand of snapCandidatesX) {
-                    if (Math.abs(x - cand.val) <= snapThresholdMm) {
-                        x = cand.val;
-                        activeSnapGuides.push({ type: 'x', val: cand.val });
+                for (const val of snapCandidatesX) {
+                    if (Math.abs(x - val) <= snapThresholdMm) {
+                        x = val;
+                        activeSnapGuides.push({ type: 'x', val });
                         break;
                     }
                 }
-                for (const cand of snapCandidatesY) {
-                    if (Math.abs(y - cand.val) <= snapThresholdMm) {
-                        y = cand.val;
-                        activeSnapGuides.push({ type: 'y', val: cand.val });
+                for (const val of snapCandidatesY) {
+                    if (Math.abs(y - val) <= snapThresholdMm) {
+                        y = val;
+                        activeSnapGuides.push({ type: 'y', val });
                         break;
                     }
                 }
             }
 
-            // 2. Прилипание к другим рулонам (выравнивание по осям соседних рулонов и касание боками)
             if (modalSnapSettings.snapToRolls) {
                 for (let i = 0; i < modalPointsMm.length; i++) {
                     if (i === movingIdx) continue;
                     const other = modalPointsMm[i];
 
-                    // Выравнивание по одной линии X или Y с соседним рулоном
                     if (Math.abs(x - other.x) <= 18) {
                         x = other.x;
                         activeSnapGuides.push({ type: 'x', val: other.x });
@@ -3252,7 +3121,6 @@
                         activeSnapGuides.push({ type: 'y', val: other.y });
                     }
 
-                    // Магнитное касание окружностей (дистанция ровно maxD без нахлеста)
                     const dx = x - other.x;
                     const dy = y - other.y;
                     const dist = Math.hypot(dx, dy);
@@ -3265,7 +3133,6 @@
                 }
             }
 
-            // 3. Жесткое ограничение внутри паллеты (если включен флажок)
             if (modalSnapSettings.clampInside) {
                 x = Math.max(r, Math.min(pDim.w - r, x));
                 y = Math.max(r, Math.min(pDim.h - r, y));
@@ -3290,22 +3157,20 @@
         }
 
         function drawModalEditorCanvas() {
-            const { canvas, pDim, cw, ch, scale, pw, ph, ox, oy } = getModalCanvasTransform();
+            const { canvas, pDim, scale, pw, ph, ox, oy } = getModalCanvasTransform();
             const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, cw, ch);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             const maxD = Math.max(80, parseFloat(document.getElementById('modalMaxDiam').value) || 250);
             const rMm = maxD / 2;
             const rPx = rMm * scale;
 
-            // Рамка паллеты
             ctx.fillStyle = '#ffffff';
             ctx.strokeStyle = '#1e3a8a';
             ctx.lineWidth = 2.5;
             ctx.fillRect(ox, oy, pw, ph);
             ctx.strokeRect(ox, oy, pw, ph);
 
-            // Подписи сторон паллеты
             ctx.fillStyle = '#64748b';
             ctx.font = '600 11px JetBrains Mono, monospace';
             ctx.textAlign = 'center';
@@ -3316,7 +3181,6 @@
             ctx.fillText(`${pDim.h} мм`, 0, 0);
             ctx.restore();
 
-            // Осевые направляющие
             ctx.strokeStyle = '#e2e8f0';
             ctx.lineWidth = 1;
             ctx.beginPath();
@@ -3326,7 +3190,6 @@
             ctx.lineTo(ox + pw, oy + ph / 2);
             ctx.stroke();
 
-            // Отрисовка активных линий магнитного прилипания (если сейчас перетаскивается рулон)
             if (draggingPointIdx !== -1 && activeSnapGuides.length > 0) {
                 ctx.save();
                 ctx.strokeStyle = '#4f46e5';
@@ -3351,7 +3214,6 @@
                 ctx.restore();
             }
 
-            // Поиск пересечений (нахлестов) между рулонами и выходов за край паллеты
             const overlappingSet = new Set();
             const overlapPairs = [];
             let maxOverlapMm = 0;
@@ -3394,10 +3256,10 @@
                 ctx.arc(cx, cy, Math.max(4, rPx), 0, Math.PI * 2);
 
                 if (isColliding) {
-                    ctx.fillStyle = 'rgba(225, 29, 72, 0.85)'; // Красный при нахлесте друг на друга
+                    ctx.fillStyle = 'rgba(225, 29, 72, 0.85)';
                     ctx.strokeStyle = '#881337';
                 } else if (isOut) {
-                    ctx.fillStyle = 'rgba(245, 158, 11, 0.85)'; // Оранжевый при выходе за край паллеты
+                    ctx.fillStyle = 'rgba(245, 158, 11, 0.85)';
                     ctx.strokeStyle = '#b45309';
                 } else {
                     ctx.fillStyle = (idx === draggingPointIdx) ? '#2563eb' : '#3b6fc4';
@@ -3407,7 +3269,6 @@
                 ctx.lineWidth = isSelected ? 3 : 1.5;
                 ctx.stroke();
 
-                // Белый пунктирный ободок вокруг активного выбранного рулона
                 if (isSelected) {
                     ctx.save();
                     ctx.beginPath();
@@ -3426,7 +3287,6 @@
                 ctx.fillText(idx + 1, cx, cy);
             });
 
-            // Отрисовка линий и величины нахлеста в мм поверх пересекающихся рулонов
             overlapPairs.forEach(pair => {
                 const p1 = modalPointsMm[pair.i];
                 const p2 = modalPointsMm[pair.j];
@@ -3443,7 +3303,6 @@
                 ctx.lineTo(x2, y2);
                 ctx.stroke();
 
-                // Бейдж с миллиметрами нахлеста
                 const label = `-${pair.overlap} мм`;
                 ctx.font = '700 10px JetBrains Mono, monospace';
                 const tw = ctx.measureText(label).width + 8;
@@ -3458,7 +3317,6 @@
 
             document.getElementById('modalRollCountBadge').textContent = modalPointsMm.length;
 
-            // Обновление информационной панели о коллизиях в модальном окне
             const banner = document.getElementById('modalCollisionBanner');
             const bannerTxt = document.getElementById('modalCollisionText');
             const diagGapMm = Math.round(Math.hypot(pDim.w - maxD, pDim.h - maxD) - maxD);
@@ -3515,7 +3373,7 @@
             state.exactLockedLength = null;
             state.rollDiam = maxD;
             document.getElementById('inputRollDiam').value = maxD;
-            document.getElementById('sliderRollDiam').value = Math.min(800, maxD);
+            document.getElementById('sliderRollDiam').value = Math.min(DIAM_SLIDER_MAX, Math.max(DIAM_SLIDER_MIN, maxD));
             selectPallet(palletKey);
 
             manualSelectScheme(newScheme.id);
@@ -3526,20 +3384,35 @@
          * 8. ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
          ***********************************************************************/
         window.addEventListener('DOMContentLoaded', () => {
+            buildDiameterScaleTicks();
             initSchemes();
 
-            // Привязка инпутов
             const inputRollDiam = document.getElementById('inputRollDiam');
             const sliderRollDiam = document.getElementById('sliderRollDiam');
 
+            // Мягкая валидация при вводе с клавиатуры (не перебивает ввод при стирании цифр)
             inputRollDiam.addEventListener('input', (e) => {
-                const v = parseFloat(e.target.value);
-                if (!isNaN(v) && v >= 50) {
+                const raw = e.target.value;
+                if (raw === '') return;
+                const v = parseFloat(raw);
+                if (!isNaN(v) && v >= 50 && v <= 1500) {
                     state.exactLockedLength = null;
                     state.rollDiam = v;
-                    sliderRollDiam.value = Math.min(800, Math.max(100, Math.round(v)));
+                    sliderRollDiam.value = Math.min(DIAM_SLIDER_MAX, Math.max(DIAM_SLIDER_MIN, Math.round(v)));
                     updateUI();
                 }
+            });
+
+            inputRollDiam.addEventListener('change', (e) => {
+                const d_core = state.coreInnerDiam + 2 * Math.max(0, state.coreWall);
+                let v = parseFloat(e.target.value);
+                if (isNaN(v) || v < d_core + 1) v = d_core + 1;
+                if (v > 1200) v = 1200;
+                e.target.value = v;
+                state.exactLockedLength = null;
+                state.rollDiam = v;
+                sliderRollDiam.value = Math.min(DIAM_SLIDER_MAX, Math.max(DIAM_SLIDER_MIN, Math.round(v)));
+                updateUI();
             });
 
             sliderRollDiam.addEventListener('input', (e) => {
@@ -3550,27 +3423,41 @@
                 updateUI();
             });
 
-            // Ввод метража рулона (пересчитывает диаметр рулона D)
             const inputRollLength = document.getElementById('inputRollLength');
             inputRollLength.addEventListener('input', (e) => {
-                const v = parseFloat(e.target.value);
+                const raw = e.target.value;
+                if (raw === '') return;
+                const v = parseFloat(raw);
                 if (!isNaN(v) && v > 0) {
                     setLengthAndRecalcDiam(v, true, false);
                 }
             });
+            inputRollLength.addEventListener('change', (e) => {
+                let v = parseFloat(e.target.value);
+                if (isNaN(v) || v < 1) v = 1;
+                e.target.value = v;
+                setLengthAndRecalcDiam(v, false, false);
+            });
 
-            // Ввод целевого чистого веса 1 рулона (пересчитывает метраж и диаметр D)
             const inputTargetNetWeight = document.getElementById('inputTargetNetWeight');
             if (inputTargetNetWeight) {
                 inputTargetNetWeight.addEventListener('input', (e) => {
-                    const v = parseFloat(e.target.value);
+                    const raw = e.target.value;
+                    if (raw === '') return;
+                    const v = parseFloat(raw);
                     if (!isNaN(v) && v > 0) {
                         setNetWeightAndRecalc(v);
                     }
                 });
+                inputTargetNetWeight.addEventListener('change', (e) => {
+                    let v = parseFloat(e.target.value);
+                    if (isNaN(v) || v < 0.05) v = 0.05;
+                    setNetWeightAndRecalc(v);
+                });
             }
 
             document.getElementById('inputCoreWall').addEventListener('input', (e) => {
+                if (e.target.value === '') return;
                 const v = parseFloat(e.target.value);
                 if (!isNaN(v) && v >= 0) {
                     state.coreWall = v;
@@ -3584,7 +3471,17 @@
                 }
             });
 
+            document.getElementById('inputCoreDensity').addEventListener('input', (e) => {
+                if (e.target.value === '') return;
+                const v = parseFloat(e.target.value);
+                if (!isNaN(v) && v > 0) {
+                    state.coreDensity = v;
+                    updateUI();
+                }
+            });
+
             document.getElementById('inputThickness').addEventListener('input', (e) => {
+                if (e.target.value === '') return;
                 const v = parseFloat(e.target.value);
                 if (!isNaN(v) && v > 0) {
                     state.thicknessMicrons = v;
@@ -3599,6 +3496,7 @@
             });
 
             document.getElementById('inputRollGap').addEventListener('input', (e) => {
+                if (e.target.value === '') return;
                 const v = parseFloat(e.target.value);
                 if (!isNaN(v) && v >= 0) {
                     state.rollGap = v;
@@ -3607,6 +3505,7 @@
             });
 
             document.getElementById('inputWidth').addEventListener('input', (e) => {
+                if (e.target.value === '') return;
                 const v = parseFloat(e.target.value);
                 if (!isNaN(v) && v > 0) {
                     state.rollWidth = v;
@@ -3627,6 +3526,7 @@
             });
 
             inputDensity.addEventListener('input', (e) => {
+                if (e.target.value === '') return;
                 const v = parseFloat(e.target.value);
                 if (!isNaN(v) && v > 0) {
                     state.density = v;
@@ -3636,6 +3536,7 @@
             });
 
             document.getElementById('inputTiers').addEventListener('input', (e) => {
+                if (e.target.value === '') return;
                 const v = parseInt(e.target.value, 10);
                 if (!isNaN(v) && v >= 1) {
                     state.tiers = v;
@@ -3644,6 +3545,7 @@
             });
 
             document.getElementById('inputPalletWeight').addEventListener('input', (e) => {
+                if (e.target.value === '') return;
                 const v = parseFloat(e.target.value);
                 if (!isNaN(v) && v >= 0) {
                     state.palletWoodWeight = v;
@@ -3651,8 +3553,8 @@
                 }
             });
 
-            // События для лимитов высоты и веса паллеты (Пункт 2)
             document.getElementById('inputMaxHeightLimit').addEventListener('input', (e) => {
+                if (e.target.value === '') return;
                 const v = parseFloat(e.target.value);
                 if (!isNaN(v) && v >= 300) {
                     state.maxHeightLimitMm = v;
@@ -3661,6 +3563,7 @@
             });
 
             document.getElementById('inputMaxWeightLimit').addEventListener('input', (e) => {
+                if (e.target.value === '') return;
                 const v = parseFloat(e.target.value);
                 if (!isNaN(v) && v >= 50) {
                     state.maxWeightLimitKg = v;
@@ -3668,7 +3571,6 @@
                 }
             });
 
-            // События для межъярусных прокладок и упаковки (Пункт 4)
             document.getElementById('chkUseInterlayer').addEventListener('change', (e) => {
                 state.useInterlayer = e.target.checked;
                 const grid = document.getElementById('interlayerSettingsGrid');
@@ -3677,6 +3579,7 @@
             });
 
             document.getElementById('inputSheetThickness').addEventListener('input', (e) => {
+                if (e.target.value === '') return;
                 const v = parseFloat(e.target.value);
                 if (!isNaN(v) && v >= 0) {
                     state.interlayerThickMm = v;
@@ -3685,6 +3588,7 @@
             });
 
             document.getElementById('inputSheetWeight').addEventListener('input', (e) => {
+                if (e.target.value === '') return;
                 const v = parseFloat(e.target.value);
                 if (!isNaN(v) && v >= 0) {
                     state.interlayerWeightKg = v;
@@ -3693,6 +3597,7 @@
             });
 
             document.getElementById('inputWrapWeight').addEventListener('input', (e) => {
+                if (e.target.value === '') return;
                 const v = parseFloat(e.target.value);
                 if (!isNaN(v) && v >= 0) {
                     state.stretchWrapWeightKg = v;
@@ -3700,8 +3605,8 @@
                 }
             });
 
-            // События для калькулятора партии / заказа (Пункт 1)
             document.getElementById('inputBatchValue').addEventListener('input', (e) => {
+                if (e.target.value === '') return;
                 const v = parseFloat(e.target.value);
                 if (!isNaN(v) && v >= 0) {
                     state.batchOrderValue = v;
@@ -3740,19 +3645,20 @@
                 state.lockMode = 'length';
                 state.coreInnerDiam = 76;
                 state.coreWall = 8;
+                state.coreDensity = 0.72;
                 state.thicknessMicrons = 50;
                 state.windingLayers = 1;
-                state.rollWidth = 400;
+                state.rollWidth = 500;
                 state.density = 0.92;
                 state.rollGap = 0;
                 state.tiers = 3;
                 state.palletWoodWeight = 22;
                 state.maxHeightLimitMm = 1800;
-                state.maxWeightLimitKg = 850;
+                state.maxWeightLimitKg = 1000;
                 state.useInterlayer = true;
                 state.interlayerThickMm = 4;
-                state.interlayerWeightKg = 0.9;
-                state.stretchWrapWeightKg = 1.2;
+                state.interlayerWeightKg = 0.8;
+                state.stretchWrapWeightKg = 1.5;
                 state.batchOrderValue = 3000;
                 state.batchOrderUnit = 'kg';
                 state.autoSelectScheme = true;
@@ -3760,20 +3666,21 @@
                 document.getElementById('inputRollDiam').value = 235;
                 document.getElementById('sliderRollDiam').value = 235;
                 document.getElementById('inputCoreWall').value = 8;
+                document.getElementById('inputCoreDensity').value = 0.72;
                 document.getElementById('inputThickness').value = 50;
-                document.getElementById('inputWidth').value = 400;
+                document.getElementById('inputWidth').value = 500;
                 document.getElementById('selectMaterial').value = '0.92';
                 document.getElementById('inputDensity').value = 0.92;
                 document.getElementById('inputRollGap').value = 0;
                 document.getElementById('inputTiers').value = 3;
                 document.getElementById('inputPalletWeight').value = 22;
                 document.getElementById('inputMaxHeightLimit').value = 1800;
-                document.getElementById('inputMaxWeightLimit').value = 850;
+                document.getElementById('inputMaxWeightLimit').value = 1000;
                 document.getElementById('chkUseInterlayer').checked = true;
                 document.getElementById('interlayerSettingsGrid').classList.remove('opacity-40');
                 document.getElementById('inputSheetThickness').value = 4;
-                document.getElementById('inputSheetWeight').value = 0.9;
-                document.getElementById('inputWrapWeight').value = 1.2;
+                document.getElementById('inputSheetWeight').value = 0.8;
+                document.getElementById('inputWrapWeight').value = 1.5;
                 document.getElementById('inputBatchValue').value = 3000;
                 document.getElementById('selectBatchUnit').value = 'kg';
                 document.getElementById('chkAutoScheme').checked = true;
@@ -3785,7 +3692,6 @@
                 selectOrientation('vertical');
             });
 
-            // События мыши и тача для конструктора схем на холсте
             const modalCanvas = document.getElementById('canvasModalEditor');
 
             function getMousePosOnModalPallet(evt) {
@@ -3804,7 +3710,6 @@
             modalCanvas.addEventListener('mousedown', (e) => {
                 const pos = getMousePosOnModalPallet(e);
                 const maxD = Math.max(80, parseFloat(document.getElementById('modalMaxDiam').value) || 250);
-                // Ищем с конца, чтобы выбирать верхний отрисованный рулон
                 let hitIdx = -1;
                 for (let i = modalPointsMm.length - 1; i >= 0; i--) {
                     if (Math.hypot(modalPointsMm[i].x - pos.mmX, modalPointsMm[i].y - pos.mmY) <= maxD / 2) {
@@ -3850,7 +3755,6 @@
                 }
             });
 
-            // Поддержка сенсорного перетаскивания (Touch) для конструктора схем на смартфонах и планшетах
             modalCanvas.addEventListener('touchstart', (e) => {
                 if (e.touches.length !== 1) return;
                 const pos = getMousePosOnModalPallet(e);
@@ -3910,11 +3814,9 @@
                 updateUI();
             });
 
-            // Первичный рендер
             updateUI();
         });
 
-        // Явный экспорт функций для inline-обработчиков в HTML
         Object.assign(window, {
             setQuickDiam,
             setQuickLength,
